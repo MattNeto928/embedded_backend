@@ -6,6 +6,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
+import { LabContentImporter } from './lab-content-importer';
 
 export class Ece4180Stack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -291,6 +292,12 @@ export class Ece4180Stack extends cdk.Stack {
     new cdk.CfnOutput(this, 'VideoBucketName', {
       value: videoBucket.bucketName,
       description: 'S3 Video Bucket Name',
+    });
+    
+    // Add the lab content importer to automatically load lab content from JSON files
+    // This will preserve the "locked" status of existing labs
+    new LabContentImporter(this, 'LabContentImporter', {
+      labsTable: labsTable
     });
   }
 }
