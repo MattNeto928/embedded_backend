@@ -1,0 +1,124 @@
+{
+  "labId": "lab2",
+  "title": "Lab 2: I2C, UART, SPI, Capacitive Touch, Motors",
+  "description": "Explore I2C (DAC), UART (uLCD), SPI (I/O expander), Capacitive touch pad working with DAC, and Motors.",
+  "content": "# Lab 2: I2C, UART, SPI, Capacitive Touch, Motors\n\n## Topics:\n- I2C - DAC\n- UART - uLCD\n- SPI - I/O expander\n- Capacitive touch pad working with DAC\n- Motors",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "In this lab, you will explore various communication protocols and interfaces available on the ESP32. You'll work with I2C to interface with a Digital-to-Analog Converter (DAC), UART to communicate with a micro LCD display, and SPI to control an I/O expander. Additionally, you'll implement capacitive touch sensing and control motors."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Configure and use I2C to communicate with a DAC\n- Implement UART communication with a micro LCD display\n- Set up SPI communication with an I/O expander\n- Use the ESP32's capacitive touch sensing capabilities\n- Interface the capacitive touch with a DAC\n- Control motors using appropriate driver circuits"
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "- ESP32 development board\n- Breadboard and jumper wires\n- DAC module (e.g., MCP4725)\n- Micro LCD display with UART interface\n- SPI I/O expander (e.g., MCP23S17)\n- Conductive materials for touch sensing\n- DC motors or servo motors\n- Motor driver circuit components\n- Power supply for motors"
+          }
+        ]
+      },
+      {
+        "id": "instructions",
+        "type": "instructions",
+        "title": "Instructions",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "### Part 1: I2C Communication with DAC\n\n1. Connect the DAC module to the ESP32 using I2C pins (SDA and SCL)\n2. Configure the I2C interface in your code\n3. Write a function to send digital values to the DAC\n4. Generate various waveforms (sine, triangle, sawtooth) using the DAC\n5. Verify the output using an oscilloscope or multimeter"
+          },
+          {
+            "type": "text",
+            "content": "### Part 2: UART Communication with Micro LCD\n\n1. Connect the micro LCD to the ESP32's UART pins (TX and RX)\n2. Configure the UART interface with appropriate baud rate\n3. Implement functions to send commands and data to the LCD\n4. Create a simple user interface that displays sensor data\n5. Add graphics or custom characters to enhance the display"
+          },
+          {
+            "type": "text",
+            "content": "### Part 3: SPI Communication with I/O Expander\n\n1. Connect the I/O expander to the ESP32 using SPI pins (MOSI, MISO, CLK, CS)\n2. Configure the SPI interface in your code\n3. Write functions to configure the expander's pins as inputs or outputs\n4. Implement a simple application that uses the expanded I/O capabilities\n5. Demonstrate reading inputs and controlling outputs through the expander"
+          },
+          {
+            "type": "text",
+            "content": "### Part 4: Capacitive Touch Sensing\n\n1. Connect conductive materials to the ESP32's touch-enabled pins\n2. Configure the touch sensing interface in your code\n3. Implement functions to read touch values and detect touch events\n4. Create a simple touch-controlled application\n5. Calibrate the touch sensitivity for reliable operation"
+          },
+          {
+            "type": "text",
+            "content": "### Part 5: Integrating Touch with DAC\n\n1. Use the touch sensing values to control the DAC output\n2. Create a touch-sensitive volume control or similar application\n3. Implement smooth transitions between touch values and DAC output\n4. Add visual feedback through the LCD or LEDs"
+          },
+          {
+            "type": "text",
+            "content": "### Part 6: Motor Control\n\n1. Set up the motor driver circuit on your breadboard\n2. Connect the driver circuit to the ESP32's output pins\n3. Implement functions for basic motor control (start, stop, speed, direction)\n4. Create a simple motor control application\n5. Demonstrate speed control using PWM and direction control"
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "Submit the following:\n\n1. Your complete code with comments explaining each protocol implementation\n2. Circuit diagrams for each part of the lab\n3. A brief report (2-3 pages) explaining your implementation approach and any challenges you faced\n4. A video demonstration showing all components working together\n5. Oscilloscope screenshots or measurements of the DAC output waveforms"
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource1",
+        "type": "document",
+        "title": "ESP32 I2C Documentation",
+        "description": "Official documentation for ESP32 I2C interface",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/i2c.html"
+      },
+      {
+        "id": "resource2",
+        "type": "document",
+        "title": "ESP32 UART Documentation",
+        "description": "Official documentation for ESP32 UART interface",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/uart.html"
+      },
+      {
+        "id": "resource3",
+        "type": "document",
+        "title": "ESP32 SPI Documentation",
+        "description": "Official documentation for ESP32 SPI interface",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/spi_master.html"
+      },
+      {
+        "id": "resource4",
+        "type": "document",
+        "title": "ESP32 Touch Sensor Documentation",
+        "description": "Official documentation for ESP32 touch sensing",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/touch_pad.html"
+      }
+    ]
+  },
+  "order": 2,
+  "locked": true,
+  "createdAt": "2025-08-22T16:46:00.000Z",
+  "updatedAt": "2025-08-22T16:46:00.000Z"
+}

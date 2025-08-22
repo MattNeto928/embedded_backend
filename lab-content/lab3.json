@@ -1,0 +1,125 @@
+{
+  "labId": "lab3",
+  "title": "Lab 3: Interrupt, Wireless Communication",
+  "description": "Explore Interrupts, Wireless communication (Bluetooth, Wifi with other ESP, ESP-NOW with other ESP). Extra credit: Measure range of any protocol.",
+  "content": "# Lab 3: Interrupt, Wireless Communication\n\n## Topics:\n- Interrupt\n- Wireless communication\n  - Bluetooth\n  - Wifi with other ESP\n  - ESP-NOW with other ESP\n\n## Extra Credit:\n- Measure range of any protocol",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "In this lab, you will explore two important aspects of embedded systems: interrupts and wireless communication. You'll learn how to configure and use interrupts to handle events efficiently, and you'll implement various wireless communication protocols including Bluetooth, WiFi, and ESP-NOW to enable communication between ESP32 devices."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Configure and use hardware interrupts on the ESP32\n- Implement interrupt service routines (ISRs)\n- Set up Bluetooth communication between ESP32 and another device\n- Configure WiFi communication between two ESP32 devices\n- Implement ESP-NOW protocol for efficient device-to-device communication\n- (Extra Credit) Measure and document the effective range of one of the wireless protocols"
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Two ESP32 development boards\n- Breadboard and jumper wires\n- Push buttons or switches for interrupt testing\n- LEDs and resistors\n- Smartphone with Bluetooth capability (for Bluetooth testing)\n- WiFi access point or router\n- USB cables for programming and power"
+          }
+        ]
+      },
+      {
+        "id": "instructions",
+        "type": "instructions",
+        "title": "Instructions",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "### Part 1: Interrupts\n\n1. Connect a push button to a GPIO pin that supports interrupts\n2. Configure the pin for interrupt detection (rising edge, falling edge, or both)\n3. Implement an interrupt service routine (ISR) that toggles an LED\n4. Demonstrate debouncing techniques for reliable button detection\n5. Implement a second interrupt source and show prioritization"
+          },
+          {
+            "type": "code",
+            "language": "c",
+            "content": "// Example interrupt setup code\n#define BUTTON_PIN 4\n#define LED_PIN 2\n\nvolatile bool ledState = false;\nvolatile unsigned long lastDebounceTime = 0;\nconst unsigned long debounceDelay = 200;\n\nvoid IRAM_ATTR buttonISR() {\n  unsigned long currentTime = millis();\n  if (currentTime - lastDebounceTime > debounceDelay) {\n    ledState = !ledState;\n    digitalWrite(LED_PIN, ledState);\n    lastDebounceTime = currentTime;\n  }\n}\n\nvoid setup() {\n  pinMode(BUTTON_PIN, INPUT_PULLUP);\n  pinMode(LED_PIN, OUTPUT);\n  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonISR, FALLING);\n}\n\nvoid loop() {\n  // Main program continues without being blocked\n  // Do other tasks here\n}"
+          },
+          {
+            "type": "text",
+            "content": "### Part 2: Bluetooth Communication\n\n1. Configure one ESP32 as a Bluetooth server\n2. Set up a simple Bluetooth service with readable and writable characteristics\n3. Use a smartphone app (e.g., nRF Connect) to connect to the ESP32\n4. Send commands from the smartphone to control the ESP32 (e.g., toggle LEDs)\n5. Send sensor data from the ESP32 to the smartphone"
+          },
+          {
+            "type": "text",
+            "content": "### Part 3: WiFi Communication\n\n1. Configure both ESP32 devices to connect to the same WiFi network\n2. Set up one ESP32 as a server and the other as a client\n3. Implement a simple communication protocol between the devices\n4. Send commands from the client to the server\n5. Send sensor data from the server to the client\n6. Demonstrate bidirectional communication"
+          },
+          {
+            "type": "text",
+            "content": "### Part 4: ESP-NOW Communication\n\n1. Configure both ESP32 devices for ESP-NOW communication\n2. Register peer devices using their MAC addresses\n3. Implement callback functions for sending and receiving data\n4. Create a simple protocol for exchanging information\n5. Demonstrate low-latency communication between the devices\n6. Compare the performance with WiFi communication"
+          },
+          {
+            "type": "text",
+            "content": "### Extra Credit: Range Measurement\n\n1. Choose one of the wireless protocols (Bluetooth, WiFi, or ESP-NOW)\n2. Design a test setup to measure the effective range\n3. Implement a signal strength indicator on the receiver\n4. Measure the maximum distance for reliable communication\n5. Document factors that affect the range (obstacles, interference, etc.)\n6. Compare your results with the theoretical range of the protocol"
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "Submit the following:\n\n1. Your complete code for all parts of the lab\n2. Circuit diagrams showing the connections for interrupt testing\n3. A report (2-3 pages) explaining your implementation approach for each part\n4. A video demonstration showing:\n   - Interrupt handling with debouncing\n   - Bluetooth communication with a smartphone\n   - WiFi communication between two ESP32 devices\n   - ESP-NOW communication between two ESP32 devices\n   - (If applicable) Range testing methodology and results\n5. Analysis of the advantages and disadvantages of each wireless protocol"
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource1",
+        "type": "document",
+        "title": "ESP32 Interrupt Documentation",
+        "description": "Official documentation for ESP32 interrupt handling",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/intr_alloc.html"
+      },
+      {
+        "id": "resource2",
+        "type": "document",
+        "title": "ESP32 Bluetooth Documentation",
+        "description": "Official documentation for ESP32 Bluetooth functionality",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/index.html"
+      },
+      {
+        "id": "resource3",
+        "type": "document",
+        "title": "ESP32 WiFi Documentation",
+        "description": "Official documentation for ESP32 WiFi functionality",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/network/esp_wifi.html"
+      },
+      {
+        "id": "resource4",
+        "type": "document",
+        "title": "ESP-NOW Documentation",
+        "description": "Official documentation for ESP-NOW protocol",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/network/esp_now.html"
+      }
+    ]
+  },
+  "order": 3,
+  "locked": true,
+  "createdAt": "2025-08-22T16:46:00.000Z",
+  "updatedAt": "2025-08-22T16:46:00.000Z"
+}

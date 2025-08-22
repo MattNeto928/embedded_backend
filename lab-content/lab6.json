@@ -1,0 +1,201 @@
+{
+  "labId": "lab6",
+  "title": "Final Project: IoT Application",
+  "description": "Build a complete IoT application integrating all the concepts learned in previous labs.",
+  "content": "# Final Project: IoT Application\n\nThis final project integrates all the concepts learned in previous labs to build a complete IoT application.\n\n## Objectives\n\n- Design and implement a complete IoT system\n- Integrate sensors, actuators, and communication protocols\n- Implement a cloud connection for data storage and visualization\n- Create a user interface for controlling the system\n\n## Requirements\n\n- ESP32-C6 DevKit\n- Breadboard\n- Various sensors and actuators\n- Cloud platform account (e.g., AWS IoT, Azure IoT, etc.)\n- Jumper wires\n\n## Instructions\n\n1. Design your IoT application (e.g., smart home system, environmental monitoring, etc.)\n2. Select appropriate sensors and actuators for your application\n3. Implement the firmware for your ESP32-C6\n4. Configure the cloud connection for data storage and visualization\n5. Create a user interface (web or mobile) for controlling your system\n6. Test and debug your complete system\n7. Record a video demonstrating your working IoT application\n\n## Submission\n\nSubmit a video (3-5 minutes) showing your working IoT application, explaining your design choices, and demonstrating the functionality of your system.",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "This final project integrates all the concepts learned in previous labs to build a complete IoT application. You will design and implement an end-to-end IoT system that collects data from sensors, processes it, communicates with a cloud platform, and provides a user interface for monitoring and control."
+          },
+          {
+            "type": "image",
+            "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/_images/esp32-c6-devkitc-1-v1-isometric.png",
+            "caption": "ESP32-C6 DevKit - The foundation of your IoT project"
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "### In this final project, you will:\n\n- Design and implement a complete IoT system from sensors to cloud\n- Apply concepts from all previous labs (GPIO, timers, communication protocols, connectivity)\n- Integrate multiple sensors and actuators into a cohesive system\n- Implement secure communication with a cloud platform\n- Create a user interface for monitoring and controlling your IoT application\n- Demonstrate your understanding of embedded systems and IoT concepts"
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "### Hardware Requirements:\n\n- ESP32-C6 DevKit\n- Breadboard and jumper wires\n- At least two different sensors (e.g., temperature, humidity, pressure, motion, light)\n- At least one actuator (e.g., LED, relay, servo motor, buzzer)\n- Power supply\n\n### Software Requirements:\n\n- ESP-IDF development environment\n- Cloud platform account (choose one):\n  - AWS IoT Core\n  - Azure IoT Hub\n  - Google Cloud IoT\n  - ThingSpeak\n  - Blynk\n  - Or any other suitable IoT platform\n- Web or mobile development tools (if creating a custom interface)"
+          },
+          {
+            "type": "note",
+            "content": "You must have completed all previous labs (1-5) before starting this final project, as it builds on concepts from all of them."
+          }
+        ]
+      },
+      {
+        "id": "instructions",
+        "type": "instructions",
+        "title": "Instructions",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "### Step 1: Project Planning and Design\n\nBefore writing any code, plan your IoT application carefully."
+          },
+          {
+            "type": "text",
+            "content": "#### Project Ideas (choose one or create your own):\n\n1. **Smart Home Monitoring System**\n   - Monitor temperature, humidity, and air quality\n   - Control lights, fans, or other appliances\n   - Provide alerts for unusual conditions\n\n2. **Environmental Monitoring Station**\n   - Collect weather data (temperature, humidity, pressure)\n   - Monitor air quality (particulate matter, CO2)\n   - Log and visualize data over time\n\n3. **Plant Monitoring and Watering System**\n   - Monitor soil moisture, light levels, and temperature\n   - Automatically water plants when soil is dry\n   - Track plant health over time\n\n4. **Security System**\n   - Detect motion or door/window openings\n   - Capture images or trigger alarms\n   - Send notifications to your phone\n\n5. **Energy Monitoring System**\n   - Monitor power consumption of devices\n   - Identify energy usage patterns\n   - Suggest energy-saving opportunities"
+          },
+          {
+            "type": "text",
+            "content": "#### Design Requirements:\n\n1. Create a system architecture diagram showing:\n   - Hardware components and connections\n   - Software modules and their interactions\n   - Data flow from sensors to cloud to user interface\n\n2. Define the specific functionality of your application:\n   - What data will be collected?\n   - How will it be processed?\n   - What actions will be taken based on the data?\n   - How will users interact with the system?"
+          },
+          {
+            "type": "image",
+            "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/_images/esp32-c6-devkitc-1-v1-pinout.png",
+            "caption": "ESP32-C6 DevKit pinout for planning your connections"
+          },
+          {
+            "type": "text",
+            "content": "### Step 2: Hardware Setup\n\nAssemble the hardware components for your IoT application."
+          },
+          {
+            "type": "text",
+            "content": "1. Connect your sensors to the ESP32-C6 using appropriate interfaces (I2C, SPI, ADC, etc.)\n2. Connect your actuators to the ESP32-C6 using appropriate interfaces (GPIO, PWM, etc.)\n3. Ensure proper power supply for all components\n4. Test each component individually to verify connections"
+          },
+          {
+            "type": "warning",
+            "content": "Always double-check your wiring before applying power. Incorrect connections can damage your components."
+          },
+          {
+            "type": "text",
+            "content": "### Step 3: Firmware Development\n\nDevelop the firmware for your ESP32-C6 to implement your IoT application."
+          },
+          {
+            "type": "text",
+            "content": "Your firmware should include the following components:\n\n1. **Sensor Data Collection**\n   - Initialize and configure all sensors\n   - Read data from sensors at appropriate intervals\n   - Process and validate sensor data\n\n2. **Actuator Control**\n   - Initialize and configure all actuators\n   - Implement logic to control actuators based on sensor data or user commands\n\n3. **Local Processing**\n   - Implement any local data processing or decision-making logic\n   - Store data locally if needed (e.g., during network outages)\n\n4. **Connectivity**\n   - Configure WiFi connection\n   - Implement reconnection logic for network failures\n   - Optionally, provide BLE connectivity for local control\n\n5. **Cloud Communication**\n   - Implement secure communication with your chosen cloud platform\n   - Format data according to the platform's requirements\n   - Handle authentication and error conditions\n\n6. **Power Management**\n   - Implement power-saving features if applicable\n   - Handle battery monitoring if using battery power"
+          },
+          {
+            "type": "code",
+            "language": "c",
+            "content": "// Example structure for your main application\n#include \"freertos/FreeRTOS.h\"\n#include \"freertos/task.h\"\n#include \"esp_system.h\"\n#include \"esp_log.h\"\n#include \"nvs_flash.h\"\n\n// Include headers for your specific components\n#include \"wifi_manager.h\"\n#include \"sensor_manager.h\"\n#include \"actuator_manager.h\"\n#include \"cloud_client.h\"\n\nstatic const char *TAG = \"iot_app\";\n\n// Task for reading sensors\nvoid sensor_task(void *pvParameters) {\n    while (1) {\n        // Read data from all sensors\n        sensor_data_t data = read_all_sensors();\n        \n        // Process sensor data\n        process_sensor_data(&data);\n        \n        // Control actuators based on sensor data\n        control_actuators_based_on_data(&data);\n        \n        // Send data to cloud if connected\n        if (is_cloud_connected()) {\n            send_data_to_cloud(&data);\n        } else {\n            // Store data locally\n            store_data_locally(&data);\n        }\n        \n        // Wait for the next reading interval\n        vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_INTERVAL_MS));\n    }\n}\n\n// Task for handling cloud communication\nvoid cloud_task(void *pvParameters) {\n    while (1) {\n        // Check cloud connection\n        if (!is_cloud_connected()) {\n            // Try to connect to cloud\n            connect_to_cloud();\n        } else {\n            // Check for commands from cloud\n            cloud_command_t cmd;\n            if (receive_cloud_command(&cmd)) {\n                // Process command\n                process_cloud_command(&cmd);\n            }\n            \n            // Send any locally stored data\n            send_stored_data_to_cloud();\n        }\n        \n        vTaskDelay(pdMS_TO_TICKS(CLOUD_CHECK_INTERVAL_MS));\n    }\n}\n\nvoid app_main(void) {\n    // Initialize NVS\n    esp_err_t ret = nvs_flash_init();\n    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {\n        ESP_ERROR_CHECK(nvs_flash_erase());\n        ret = nvs_flash_init();\n    }\n    ESP_ERROR_CHECK(ret);\n    \n    // Initialize components\n    initialize_wifi();\n    initialize_sensors();\n    initialize_actuators();\n    initialize_cloud_client();\n    \n    // Create tasks\n    xTaskCreate(sensor_task, \"sensor_task\", 4096, NULL, 5, NULL);\n    xTaskCreate(cloud_task, \"cloud_task\", 4096, NULL, 5, NULL);\n    \n    ESP_LOGI(TAG, \"IoT application started\");\n}"
+          },
+          {
+            "type": "text",
+            "content": "### Step 4: Cloud Platform Integration\n\nSet up your chosen cloud platform and integrate it with your IoT application."
+          },
+          {
+            "type": "text",
+            "content": "1. **Create an account** on your chosen cloud platform if you don't already have one\n2. **Set up the necessary resources**:\n   - Register your device\n   - Create data storage (database, time series storage, etc.)\n   - Configure security and access control\n3. **Implement the communication protocol** required by your cloud platform:\n   - MQTT\n   - HTTP/HTTPS\n   - WebSockets\n   - Platform-specific SDK\n4. **Set up data visualization** tools provided by the platform\n5. **Configure alerts or notifications** if applicable"
+          },
+          {
+            "type": "text",
+            "content": "### Step 5: User Interface Development\n\nCreate a user interface for monitoring and controlling your IoT application."
+          },
+          {
+            "type": "text",
+            "content": "You have several options for creating a user interface:\n\n1. **Use the cloud platform's built-in dashboard**\n   - Many IoT platforms provide customizable dashboards\n   - Configure widgets to display your data and control your devices\n\n2. **Create a web application**\n   - Develop a simple web application using HTML, CSS, and JavaScript\n   - Use charts and graphs to visualize data\n   - Implement controls for user interaction\n\n3. **Create a mobile application**\n   - Develop a mobile app for Android or iOS\n   - Use a cross-platform framework like Flutter or React Native\n   - Implement push notifications for alerts\n\n4. **Implement a local web server on the ESP32-C6**\n   - Serve a simple web interface directly from the ESP32-C6\n   - Useful for local control without internet connectivity"
+          },
+          {
+            "type": "text",
+            "content": "### Step 6: Testing and Debugging\n\nThoroughly test your IoT application to ensure it works reliably."
+          },
+          {
+            "type": "text",
+            "content": "1. **Test each component individually**\n   - Verify sensor readings are accurate\n   - Confirm actuators respond correctly to commands\n   - Check WiFi connectivity and reconnection behavior\n   - Validate cloud communication\n\n2. **Test the complete system**\n   - Verify end-to-end functionality\n   - Test under different conditions (e.g., different sensor readings)\n   - Check error handling and recovery\n\n3. **Long-term testing**\n   - Run the system for an extended period (at least 24 hours)\n   - Monitor for stability issues, memory leaks, or connectivity problems\n   - Verify data is consistently recorded and accessible"
+          },
+          {
+            "type": "text",
+            "content": "### Step 7: Documentation and Demonstration\n\nPrepare documentation and a demonstration of your IoT application."
+          },
+          {
+            "type": "text",
+            "content": "Your documentation should include:\n\n1. **System architecture diagram**\n2. **Hardware components list and wiring diagram**\n3. **Software architecture and key algorithms**\n4. **Setup and configuration instructions**\n5. **User manual**\n6. **Challenges faced and solutions implemented**\n\nPrepare a demonstration that shows:\n\n1. **The physical hardware setup**\n2. **The system in operation**\n3. **Data being collected and visualized**\n4. **User interaction with the system**\n5. **Any special features or capabilities**"
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "Submit the following items:\n\n1. **Project Report (PDF)** including:\n   - Project overview and objectives\n   - System architecture and design\n   - Hardware and software components\n   - Implementation details\n   - Testing results\n   - Challenges faced and solutions implemented\n   - Future improvements\n\n2. **Source Code** with clear comments and documentation\n\n3. **Demonstration Video (3-5 minutes)** showing:\n   - Your IoT application in action\n   - Explanation of the key components and features\n   - Demonstration of data collection, processing, and visualization\n   - User interaction with the system\n   - Any challenges you faced and how you overcame them"
+          },
+          {
+            "type": "warning",
+            "content": "Your project will be evaluated based on functionality, creativity, technical implementation, documentation quality, and presentation. Make sure to thoroughly test your system before submission and clearly explain your design choices in your report and video."
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource1",
+        "type": "document",
+        "title": "ESP32-C6 Technical Reference Manual",
+        "description": "Complete technical reference for the ESP32-C6 microcontroller",
+        "url": "https://www.espressif.com/sites/default/files/documentation/esp32-c6_technical_reference_manual_en.pdf"
+      },
+      {
+        "id": "resource2",
+        "type": "link",
+        "title": "ESP-IDF Programming Guide",
+        "description": "Official programming guide for ESP32-C6",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/"
+      },
+      {
+        "id": "resource3",
+        "type": "link",
+        "title": "AWS IoT Core Documentation",
+        "description": "Documentation for AWS IoT Core",
+        "url": "https://docs.aws.amazon.com/iot/latest/developerguide/what-is-aws-iot.html"
+      },
+      {
+        "id": "resource4",
+        "type": "link",
+        "title": "Azure IoT Hub Documentation",
+        "description": "Documentation for Azure IoT Hub",
+        "url": "https://docs.microsoft.com/en-us/azure/iot-hub/"
+      },
+      {
+        "id": "resource5",
+        "type": "link",
+        "title": "ThingSpeak Documentation",
+        "description": "Documentation for ThingSpeak IoT platform",
+        "url": "https://www.mathworks.com/help/thingspeak/"
+      },
+      {
+        "id": "resource6",
+        "type": "link",
+        "title": "IoT Project Examples",
+        "description": "Examples of IoT projects with ESP32",
+        "url": "https://randomnerdtutorials.com/projects-esp32/"
+      }
+    ]
+  },
+  "order": 6,
+  "locked": true,
+  "createdAt": "2025-08-15T22:13:00.000Z",
+  "updatedAt": "2025-08-15T22:13:00.000Z"
+}

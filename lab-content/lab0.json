@@ -1,0 +1,63 @@
+{
+  "labId": "lab0",
+  "title": "Lab 0: Introduction to ESP32",
+  "description": "Check out ESP32 from lab room in Van Leer C256.",
+  "content": "# Lab 0: Introduction to ESP32\n\nCheck out ESP32 from lab room in Van Leer C256.",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "Welcome to ECE 4180! In this course, you will be working with the ESP32 microcontroller. Before starting the labs, you need to check out your ESP32 development board from the lab room in Van Leer C256."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Obtain your ESP32 development board\n- Familiarize yourself with the lab equipment\n- Prepare for upcoming labs"
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Your student ID\n- Course registration confirmation"
+          }
+        ]
+      },
+      {
+        "id": "instructions",
+        "type": "instructions",
+        "title": "Instructions",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "1. Visit the lab room in Van Leer C256 during open hours\n2. Present your student ID to the lab assistant\n3. Sign out an ESP32 development board\n4. Verify that all components are included in your kit"
+          }
+        ]
+      }
+    ],
+    "resources": []
+  },
+  "order": 0,
+  "locked": false,
+  "createdAt": "2025-08-22T16:46:00.000Z",
+  "updatedAt": "2025-08-22T16:46:00.000Z"
+}

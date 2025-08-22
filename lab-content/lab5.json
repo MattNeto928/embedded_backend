@@ -1,0 +1,178 @@
+{
+  "labId": "lab5",
+  "title": "WiFi and Bluetooth Connectivity",
+  "description": "Connect your ESP32-C6 to networks and other devices using WiFi and Bluetooth.",
+  "content": "# WiFi and Bluetooth Connectivity\n\nThis lab explores WiFi and Bluetooth connectivity features of the ESP32-C6.\n\n## Objectives\n\n- Configure WiFi in station and access point modes\n- Implement a simple web server\n- Configure Bluetooth Low Energy (BLE)\n- Create a BLE service and characteristic\n- Communicate between a mobile app and the ESP32-C6\n\n## Requirements\n\n- ESP32-C6 DevKit\n- Computer with WiFi\n- Smartphone with Bluetooth\n- BLE scanner app\n\n## Instructions\n\n1. Configure the ESP32-C6 as a WiFi station and connect to your local network\n2. Implement a simple web server that displays sensor data\n3. Configure the ESP32-C6 as a BLE peripheral\n4. Create a BLE service with readable and writable characteristics\n5. Use a BLE scanner app to connect to your device and interact with it\n6. Record a video demonstrating both WiFi and BLE functionality\n\n## Submission\n\nSubmit a video (2-3 minutes) showing your working WiFi and BLE implementations and explaining your code.",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "This lab explores the WiFi and Bluetooth connectivity features of the ESP32-C6. You will learn how to configure WiFi in both station and access point modes, implement a simple web server, and use Bluetooth Low Energy (BLE) to communicate with other devices."
+          },
+          {
+            "type": "image",
+            "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/_images/esp32-c6-devkitc-1-v1-annotated-photo.png",
+            "caption": "ESP32-C6 DevKit with integrated WiFi and Bluetooth"
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "### In this lab, you will:\n\n- Configure WiFi in station mode to connect to an existing network\n- Configure WiFi in access point mode to create a network\n- Implement a simple web server to display sensor data\n- Configure Bluetooth Low Energy (BLE) as a peripheral device\n- Create a BLE service with readable and writable characteristics\n- Communicate between a mobile app and the ESP32-C6 using BLE"
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "### Hardware and Software Requirements:\n\n- ESP32-C6 DevKit\n- Computer with WiFi\n- Smartphone with Bluetooth support\n- BLE scanner app (e.g., nRF Connect, LightBlue)\n- Optional: BME280 or similar sensor from previous labs"
+          },
+          {
+            "type": "note",
+            "content": "Make sure you have completed Labs 1-4 before starting this lab, as this lab builds on concepts from those labs."
+          }
+        ]
+      },
+      {
+        "id": "instructions",
+        "type": "instructions",
+        "title": "Instructions",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "### Step 1: Configure WiFi in Station Mode\n\nConfigure the ESP32-C6 as a WiFi station and connect to your local network."
+          },
+          {
+            "type": "code",
+            "language": "c",
+            "content": "#include \"esp_wifi.h\"\n#include \"esp_event.h\"\n#include \"esp_log.h\"\n#include \"nvs_flash.h\"\n\n#define WIFI_SSID \"Your_WiFi_SSID\"\n#define WIFI_PASS \"Your_WiFi_Password\"\n#define MAXIMUM_RETRY 5\n\nstatic int s_retry_num = 0;\nstatic const char *TAG = \"wifi_station\";\n\n/* WiFi station event handler */\nstatic void wifi_event_handler(void *arg, esp_event_base_t event_base,\n                              int32_t event_id, void *event_data) {\n    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {\n        esp_wifi_connect();\n    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {\n        if (s_retry_num < MAXIMUM_RETRY) {\n            esp_wifi_connect();\n            s_retry_num++;\n            ESP_LOGI(TAG, \"Retry to connect to the AP\");\n        } else {\n            ESP_LOGI(TAG, \"Failed to connect to the AP\");\n        }\n    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {\n        ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;\n        ESP_LOGI(TAG, \"Got IP: %s\", ip4addr_ntoa(&event->ip_info.ip));\n        s_retry_num = 0;\n    }\n}\n\nvoid wifi_init_sta(void) {\n    // Initialize NVS\n    esp_err_t ret = nvs_flash_init();\n    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {\n        ESP_ERROR_CHECK(nvs_flash_erase());\n        ret = nvs_flash_init();\n    }\n    ESP_ERROR_CHECK(ret);\n    \n    ESP_LOGI(TAG, \"ESP_WIFI_MODE_STA\");\n    \n    // Initialize TCP/IP adapter\n    ESP_ERROR_CHECK(esp_netif_init());\n    ESP_ERROR_CHECK(esp_event_loop_create_default());\n    esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();\n    assert(sta_netif);\n    \n    // Initialize WiFi\n    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();\n    ESP_ERROR_CHECK(esp_wifi_init(&cfg));\n    \n    // Register event handlers\n    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));\n    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL));\n    \n    // Configure WiFi station\n    wifi_config_t wifi_config = {\n        .sta = {\n            .ssid = WIFI_SSID,\n            .password = WIFI_PASS,\n            .threshold.authmode = WIFI_AUTH_WPA2_PSK,\n            .pmf_cfg = {\n                .capable = true,\n                .required = false\n            },\n        },\n    };\n    \n    // Set WiFi mode and configuration\n    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));\n    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));\n    \n    // Start WiFi\n    ESP_ERROR_CHECK(esp_wifi_start());\n    \n    ESP_LOGI(TAG, \"wifi_init_sta finished.\");\n}"
+          },
+          {
+            "type": "text",
+            "content": "### Step 2: Implement a Simple Web Server\n\nImplement a simple web server that displays sensor data."
+          },
+          {
+            "type": "code",
+            "language": "c",
+            "content": "#include \"esp_http_server.h\"\n\n// Function to get temperature (from previous lab)\nextern float bme280_read_temperature(void);\n\n// HTTP server handle\nhttpd_handle_t server = NULL;\n\n// HTML response with temperature data\nstatic esp_err_t get_handler(httpd_req_t *req) {\n    char response[512];\n    float temperature = bme280_read_temperature();\n    \n    snprintf(response, sizeof(response),\n             \"<!DOCTYPE html>\"\n             \"<html>\"\n             \"<head>\"\n             \"<meta charset='UTF-8'>\"\n             \"<meta name='viewport' content='width=device-width, initial-scale=1.0'>\"\n             \"<title>ESP32-C6 Web Server</title>\"\n             \"<style>\"\n             \"body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }\"\n             \"h1 { color: #333; }\"\n             \".temperature { font-size: 48px; margin: 20px 0; color: #0066cc; }\"\n             \"</style>\"\n             \"</head>\"\n             \"<body>\"\n             \"<h1>ESP32-C6 Web Server</h1>\"\n             \"<p>Current temperature:</p>\"\n             \"<div class='temperature'>%.1f &deg;C</div>\"\n             \"<p><button onclick='location.reload()'>Refresh</button></p>\"\n             \"</body>\"\n             \"</html>\",\n             temperature);\n    \n    httpd_resp_set_type(req, \"text/html\");\n    httpd_resp_send(req, response, strlen(response));\n    \n    return ESP_OK;\n}\n\n// URI handler structure for GET /\nstatic const httpd_uri_t root = {\n    .uri = \"/\",\n    .method = HTTP_GET,\n    .handler = get_handler,\n    .user_ctx = NULL\n};\n\n// Start the web server\nvoid start_webserver(void) {\n    httpd_config_t config = HTTPD_DEFAULT_CONFIG();\n    \n    // Start the HTTP server\n    ESP_LOGI(TAG, \"Starting server on port: %d\", config.server_port);\n    if (httpd_start(&server, &config) == ESP_OK) {\n        // Register URI handlers\n        httpd_register_uri_handler(server, &root);\n        ESP_LOGI(TAG, \"Web server started\");\n    } else {\n        ESP_LOGI(TAG, \"Error starting server!\");\n    }\n}"
+          },
+          {
+            "type": "text",
+            "content": "### Step 3: Configure Bluetooth Low Energy (BLE)\n\nConfigure the ESP32-C6 as a BLE peripheral device."
+          },
+          {
+            "type": "code",
+            "language": "c",
+            "content": "#include \"esp_bt.h\"\n#include \"esp_gap_ble_api.h\"\n#include \"esp_gatts_api.h\"\n#include \"esp_bt_main.h\"\n#include \"esp_gatt_common_api.h\"\n\n#define DEVICE_NAME \"ESP32C6_BLE\"\n#define SERVICE_UUID 0x180F  // Battery Service UUID\n#define CHAR_UUID 0x2A19     // Battery Level Characteristic UUID\n\nstatic uint8_t battery_level = 50;  // Initial battery level\n\n// Define the service and characteristic handles\nstatic uint16_t service_handle, char_handle;\n\n// Define the GAP and GATT callbacks\nstatic esp_ble_adv_params_t adv_params = {\n    .adv_int_min = 0x20,\n    .adv_int_max = 0x40,\n    .adv_type = ADV_TYPE_IND,\n    .own_addr_type = BLE_ADDR_TYPE_PUBLIC,\n    .channel_map = ADV_CHNL_ALL,\n    .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,\n};\n\nstatic void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {\n    switch (event) {\n        case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:\n            esp_ble_gap_start_advertising(&adv_params);\n            break;\n        case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:\n            if (param->adv_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {\n                ESP_LOGE(TAG, \"Advertising start failed\");\n            } else {\n                ESP_LOGI(TAG, \"Advertising started\");\n            }\n            break;\n        default:\n            break;\n    }\n}\n\nstatic void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {\n    switch (event) {\n        case ESP_GATTS_REG_EVT:\n            if (param->reg.status == ESP_GATT_OK) {\n                // Set device name\n                esp_ble_gap_set_device_name(DEVICE_NAME);\n                \n                // Configure advertising data\n                esp_ble_adv_data_t adv_data = {\n                    .set_scan_rsp = false,\n                    .include_name = true,\n                    .include_txpower = true,\n                    .min_interval = 0x0006,\n                    .max_interval = 0x0010,\n                    .appearance = 0x00,\n                    .manufacturer_len = 0,\n                    .p_manufacturer_data = NULL,\n                    .service_data_len = 0,\n                    .p_service_data = NULL,\n                    .service_uuid_len = 0,\n                    .p_service_uuid = NULL,\n                    .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),\n                };\n                esp_ble_gap_config_adv_data(&adv_data);\n                \n                // Create the service\n                esp_ble_gatts_create_service(gatts_if, &service_uuid, 2);\n            } else {\n                ESP_LOGE(TAG, \"GATTS register app failed, status %d\", param->reg.status);\n            }\n            break;\n        case ESP_GATTS_CREATE_EVT:\n            if (param->create.status == ESP_GATT_OK) {\n                service_handle = param->create.service_handle;\n                \n                // Start the service\n                esp_ble_gatts_start_service(service_handle);\n                \n                // Add the characteristic\n                esp_ble_gatts_add_char(service_handle, &char_uuid,\n                                       ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,\n                                       ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_NOTIFY,\n                                       NULL, NULL);\n            } else {\n                ESP_LOGE(TAG, \"GATTS create service failed, status %d\", param->create.status);\n            }\n            break;\n        case ESP_GATTS_ADD_CHAR_EVT:\n            if (param->add_char.status == ESP_GATT_OK) {\n                char_handle = param->add_char.attr_handle;\n                ESP_LOGI(TAG, \"Characteristic added successfully, handle = %d\", char_handle);\n            } else {\n                ESP_LOGE(TAG, \"GATTS add char failed, status %d\", param->add_char.status);\n            }\n            break;\n        case ESP_GATTS_READ_EVT:\n            // Handle read request\n            esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id,\n                                       ESP_GATT_OK, &battery_level, sizeof(battery_level));\n            break;\n        case ESP_GATTS_WRITE_EVT:\n            // Handle write request\n            if (param->write.handle == char_handle) {\n                battery_level = param->write.value[0];\n                ESP_LOGI(TAG, \"Battery level updated to %d%%\", battery_level);\n            }\n            break;\n        default:\n            break;\n    }\n}\n\nvoid ble_init(void) {\n    // Initialize NVS\n    esp_err_t ret = nvs_flash_init();\n    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {\n        ESP_ERROR_CHECK(nvs_flash_erase());\n        ret = nvs_flash_init();\n    }\n    ESP_ERROR_CHECK(ret);\n    \n    // Initialize Bluetooth controller\n    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();\n    ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));\n    ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_BLE));\n    \n    // Initialize Bluedroid\n    ESP_ERROR_CHECK(esp_bluedroid_init());\n    ESP_ERROR_CHECK(esp_bluedroid_enable());\n    \n    // Register callbacks\n    ESP_ERROR_CHECK(esp_ble_gatts_register_callback(gatts_event_handler));\n    ESP_ERROR_CHECK(esp_ble_gap_register_callback(gap_event_handler));\n    \n    // Register the GATT application\n    ESP_ERROR_CHECK(esp_ble_gatts_app_register(0));\n    \n    ESP_LOGI(TAG, \"BLE initialized\");\n}"
+          },
+          {
+            "type": "text",
+            "content": "### Step 4: Create a BLE Service with Readable and Writable Characteristics\n\nImplement a BLE service with characteristics that can be read and written."
+          },
+          {
+            "type": "code",
+            "language": "c",
+            "content": "// Update the battery level and notify connected clients\nvoid update_battery_level(uint8_t level) {\n    if (level > 100) level = 100;\n    \n    battery_level = level;\n    \n    // Prepare the notification\n    esp_ble_gatts_send_indicate(gatts_if, conn_id, char_handle,\n                              sizeof(battery_level), &battery_level, false);\n    \n    ESP_LOGI(TAG, \"Battery level updated and notified: %d%%\", battery_level);\n}\n\n// Task to simulate battery level changes\nvoid battery_level_task(void *pvParameters) {\n    uint8_t level = 50;\n    bool increasing = true;\n    \n    while (1) {\n        // Update battery level\n        if (increasing) {\n            level += 10;\n            if (level >= 100) {\n                level = 100;\n                increasing = false;\n            }\n        } else {\n            level -= 10;\n            if (level <= 0) {\n                level = 0;\n                increasing = true;\n            }\n        }\n        \n        // Update and notify\n        update_battery_level(level);\n        \n        // Wait for 5 seconds\n        vTaskDelay(pdMS_TO_TICKS(5000));\n    }\n}"
+          },
+          {
+            "type": "text",
+            "content": "### Step 5: Use a BLE Scanner App to Connect to Your Device\n\nUse a BLE scanner app on your smartphone to connect to the ESP32-C6 and interact with it."
+          },
+          {
+            "type": "image",
+            "url": "https://randomnerdtutorials.com/wp-content/uploads/2022/01/nRF-Connect-ESP32-BLE-Server-Client-01.jpg",
+            "caption": "Example of nRF Connect app showing a BLE device"
+          },
+          {
+            "type": "text",
+            "content": "1. Install a BLE scanner app on your smartphone (e.g., nRF Connect, LightBlue).\n2. Open the app and scan for BLE devices.\n3. Look for a device named \"ESP32C6_BLE\".\n4. Connect to the device.\n5. Explore the services and characteristics.\n6. Read the battery level characteristic.\n7. Write a new value to the battery level characteristic.\n8. Observe the notifications when the battery level changes."
+          },
+          {
+            "type": "text",
+            "content": "### Step 6: Integrate WiFi and BLE\n\nIntegrate the WiFi and BLE functionality into a single application."
+          },
+          {
+            "type": "code",
+            "language": "c",
+            "content": "void app_main(void) {\n    // Initialize I2C and BME280 sensor (from previous lab)\n    configure_i2c();\n    bme280_init();\n    \n    // Initialize WiFi in station mode\n    wifi_init_sta();\n    \n    // Start the web server\n    start_webserver();\n    \n    // Initialize BLE\n    ble_init();\n    \n    // Create task to update battery level\n    xTaskCreate(battery_level_task, \"battery_level_task\", 2048, NULL, 5, NULL);\n    \n    // Main loop\n    while (1) {\n        // Read temperature from BME280\n        float temperature = bme280_read_temperature();\n        ESP_LOGI(TAG, \"Temperature: %.1f C\", temperature);\n        \n        // Wait for 2 seconds\n        vTaskDelay(pdMS_TO_TICKS(2000));\n    }\n}"
+          },
+          {
+            "type": "warning",
+            "content": "Make sure to replace \"Your_WiFi_SSID\" and \"Your_WiFi_Password\" with your actual WiFi credentials. Also, be aware that the BLE implementation provided is simplified for educational purposes. In a real application, you would need to handle connection management, service and characteristic UUIDs, and other details more carefully."
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "Submit a video (2-3 minutes) showing your working WiFi and BLE implementations and explaining your code. Your video should include:\n\n1. A demonstration of the ESP32-C6 connecting to a WiFi network\n2. A demonstration of the web server displaying sensor data\n3. A demonstration of connecting to the ESP32-C6 via BLE using a smartphone app\n4. A demonstration of reading and writing BLE characteristics\n5. An explanation of your code, focusing on the WiFi and BLE implementations\n6. Any challenges you faced and how you overcame them"
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource1",
+        "type": "document",
+        "title": "ESP32-C6 WiFi Documentation",
+        "description": "Official documentation for the ESP32-C6 WiFi driver",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/network/esp_wifi.html"
+      },
+      {
+        "id": "resource2",
+        "type": "document",
+        "title": "ESP32-C6 BLE Documentation",
+        "description": "Official documentation for the ESP32-C6 BLE stack",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/bluetooth/index.html"
+      },
+      {
+        "id": "resource3",
+        "type": "document",
+        "title": "ESP32-C6 HTTP Server Documentation",
+        "description": "Official documentation for the ESP32-C6 HTTP server",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/protocols/esp_http_server.html"
+      },
+      {
+        "id": "resource4",
+        "type": "link",
+        "title": "BLE Tutorial",
+        "description": "Tutorial on BLE programming with ESP32",
+        "url": "https://randomnerdtutorials.com/esp32-bluetooth-low-energy-ble-arduino-ide/"
+      },
+      {
+        "id": "resource5",
+        "type": "link",
+        "title": "WiFi Web Server Tutorial",
+        "description": "Tutorial on creating a web server with ESP32",
+        "url": "https://randomnerdtutorials.com/esp32-web-server-arduino-ide/"
+      }
+    ]
+  },
+  "order": 5,
+  "locked": true,
+  "createdAt": "2025-08-15T22:13:00.000Z",
+  "updatedAt": "2025-08-15T22:13:00.000Z"
+}

@@ -1,0 +1,183 @@
+{
+  "labId": "lab0",
+  "title": "Lab 0: Introduction to the ESP32 and Development Environment Setup",
+  "description": "This foundational lab guides you through setting up your development environment for the ESP32 microcontroller, installing necessary drivers and libraries, and running your first program to ensure your hardware is working correctly.",
+  "content": "This foundational lab guides you through setting up your development environment for the ESP32 microcontroller, installing necessary drivers and libraries, and running your first program to ensure your hardware is working correctly.",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "Welcome to the world of embedded systems! In this course, you will be working with the ESP32, a powerful, low-cost microcontroller with integrated Wi-Fi and Bluetooth. This first lab is one of the most important, as it ensures your development environment is correctly configured for all future labs. You will set up the Arduino IDE, which provides a simplified framework for programming microcontrollers, and upload your first program—the 'Hello, World!' of embedded systems—to blink an LED. This process will verify that your computer can communicate with your ESP32 and that your toolchain is fully functional."
+          },
+          {
+            "type": "image",
+            "url": "https://i.imgur.com/39g969M.jpeg",
+            "caption": "An ESP32-WROOM-32 Development Board"
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Learning Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "By the end of this lab, you will be able to:\n- Identify the key components of the ESP32 development board.\n- Install and configure the Arduino IDE for ESP32 development on your computer.\n- Locate and install the necessary USB-to-UART bridge drivers.\n- Understand the basic structure of an Arduino sketch, including the `setup()` and `loop()` functions.\n- Compile and upload a program to the ESP32 board.\n- Modify a simple program to change its behavior.\n- Use the Serial Monitor for basic debugging and output."
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Hardware and Software Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "**Hardware:**\n* ESP32 Development Board (checked out from Van Leer C256)\n* A Micro-USB cable capable of data transfer (not just charging)\n\n**Software:**\n* Arduino IDE version 2.0 or newer (pre-installed on lab computers)\n* USB-to-UART Bridge Drivers (CP210x or CH340, depending on your board)"
+          }
+        ]
+      },
+      {
+        "id": "instructions-part1",
+        "type": "instructions",
+        "title": "Part 1: Software Installation and Configuration",
+        "order": 4,
+        "content": [
+          {
+            "type": "note",
+            "content": "The Arduino IDE is pre-installed on the lab computers in Van Leer. If you are using a lab computer, you may skip Step 1.1."
+          },
+          {
+            "type": "text",
+            "content": "**Step 1.1: Install the Arduino IDE**\nIf you are using your personal computer, download and install the latest version of the Arduino IDE from the official website. Choose the installer for your operating system (Windows, macOS, or Linux).\n\n*Resource Link:* [Arduino Software Page](https://www.arduino.cc/en/software)"
+          },
+          {
+            "type": "text",
+            "content": "**Step 1.2: Add ESP32 Board Support to Arduino IDE**\nThe Arduino IDE does not support the ESP32 by default. You need to add it using the Boards Manager.\n1.  Open the Arduino IDE.\n2.  Go to `File` > `Preferences` (or `Arduino IDE` > `Settings...` on macOS).\n3.  In the 'Additional Boards Manager URLs' field, paste the following URL:\n    `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`\n4.  Click 'OK'.\n5.  Go to `Tools` > `Board` > `Boards Manager...`.\n6.  In the search box, type `esp32`.\n7.  Find the entry by 'Espressif Systems' and click 'Install'."
+          },
+          {
+            "type": "image",
+            "url": "https://i.imgur.com/uI6y9i8.png",
+            "caption": "Adding the ESP32 Boards Manager URL."
+          },
+          {
+            "type": "text",
+            "content": "**Step 1.3: Install USB Drivers**\nYour computer communicates with the ESP32 via a USB-to-UART chip on the board. You must have the correct driver installed. Look closely at the rectangular black chip near the USB port on your ESP32 board to identify which one you have.\n* If the chip is labeled with something like 'CP2102', you need the Silicon Labs CP210x driver.\n* If the chip is labeled with 'CH340', you need the WCH CH340 driver.\nDownload and install the appropriate driver for your operating system from the links in the Resources section. After installation, reboot your computer."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part2",
+        "type": "instructions",
+        "title": "Part 2: Blinking the Onboard LED",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "**Step 2.1: Connect and Configure the Board**\n1.  Connect your ESP32 to your computer using the Micro-USB cable.\n2.  In the Arduino IDE, go to `Tools` > `Board` > `esp32` and select `ESP32 Dev Module`.\n3.  Go to `Tools` > `Port` and select the serial port corresponding to your ESP32. It might appear as `COMx` on Windows or `/dev/cu.usbserial-xxxx` on macOS/Linux."
+          },
+          {
+            "type": "warning",
+            "content": "If you don't see any port or the port is grayed out, it's likely a driver issue or you are using a charge-only USB cable. Ensure you've installed the correct driver from Part 1 and are using a data-capable cable."
+          },
+          {
+            "type": "text",
+            "content": "**Step 2.2: Load the Blink Example**\nThe Arduino IDE comes with a built-in example for blinking an LED. Let's start with that.\n1.  Go to `File` > `Examples` > `01.Basics` > `Blink`.\n2.  A new window will open with the Blink sketch. Most ESP32 boards have an onboard blue LED connected to GPIO pin 2. The `LED_BUILTIN` variable in the ESP32 core usually maps to this pin, but we can make it explicit."
+          },
+          {
+            "type": "code",
+            "language": "cpp",
+            "content": "// The setup function runs once when you press reset or power the board\nvoid setup() {\n  // initialize digital pin LED_BUILTIN as an output.\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\n// the loop function runs over and over again forever\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)\n  delay(1000);                       // wait for a second\n  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW\n  delay(1000);                       // wait for a second\n}"
+          },
+          {
+            "type": "text",
+            "content": "**Step 2.3: Compile and Upload**\n1.  Click the **Verify** button (the checkmark icon) to compile the sketch. Check the output console for any errors.\n2.  Click the **Upload** button (the right arrow icon) to send the code to your ESP32.\n3.  The console will show the progress. You might need to hold down the **'BOOT'** button on your ESP32 when the console shows `Connecting........_____.....` to put it into programming mode. Once the upload starts, you can release the button.\n4.  After the upload is complete, the onboard blue LED should start blinking: one second on, one second off."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part3",
+        "type": "instructions",
+        "title": "Part 3: Code Modification and Serial Debugging",
+        "order": 6,
+        "content": [
+          {
+            "type": "text",
+            "content": "Now that you have a working setup, let's modify the code to do something more interesting and learn how to get feedback from the board.\n\n**Challenge 3.1: Create an S.O.S. Distress Signal**\nModify the `loop()` function to make the LED blink an S.O.S. signal in Morse code (`...---...`).\n* A 'dot' is a short flash.\n* A 'dash' is a long flash (about 3 times longer than a dot).\n* Use `delay()` to control the timing. A standard might be: dot = 200ms, dash = 600ms. Remember to add short delays between dots and dashes, and a longer delay after the full S.O.S. sequence repeats."
+          },
+          {
+            "type": "text",
+            "content": "**Challenge 3.2: Print to the Serial Monitor**\nThe Serial Monitor is an essential tool for debugging. We can use it to print messages from the ESP32 to your computer.\n1.  Add `Serial.begin(115200);` inside your `setup()` function. This initializes serial communication at a baud rate of 115200 bits per second.\n2.  In your `loop()` function, add `Serial.println()` statements to announce what the program is doing. For example, print \"S.O.S. sequence started.\" at the beginning of the loop and print \"Dot\" or \"Dash\" as each flash occurs.\n3.  Upload the new code.\n4.  Open the Serial Monitor by clicking the magnifying glass icon in the top-right corner of the IDE.\n5.  Make sure the baud rate dropdown in the Serial Monitor is set to `115200` to match the rate in your code.\n6.  You should now see your messages printed out as the LED blinks."
+          },
+          {
+            "type": "code",
+            "language": "cpp",
+            "content": "// Starter code for Challenge 3.2\n\nvoid setup() {\n  // Set the LED pin as an output\n  pinMode(LED_BUILTIN, OUTPUT);\n\n  // TODO: Initialize Serial communication at 115200 baud\n  Serial.begin(115200);\n}\n\nvoid loop() {\n  // TODO: Print a message indicating the start of the S.O.S. sequence.\n\n  // TODO: Implement the S.O.S. logic here.\n  // For each dot or dash, print a message to the Serial Monitor before flashing the LED.\n\n  // TODO: Add a long delay before the sequence repeats.\n}"
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission Requirements",
+        "order": 7,
+        "content": [
+          {
+            "type": "text",
+            "content": "1.  Your final, well-commented Arduino sketch (`.ino` file) that implements the S.O.S. signal and prints diagnostic messages to the Serial Monitor.\n2.  A short video (~15-30 seconds) clearly showing your ESP32 blinking the S.O.S. pattern.\n3.  A screenshot of your Arduino IDE's Serial Monitor window showing the output messages from your running code.\n4.  A brief text file (`reflection.txt`) answering the following questions:\n    * What is the purpose of the `setup()` function versus the `loop()` function?\n    * What is a 'baud rate' and why is it critical that the rate set in `Serial.begin()` matches the rate selected in the Serial Monitor?\n    * Describe one problem you encountered during this lab and how you solved it."
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "esp32-datasheet",
+        "type": "document",
+        "title": "ESP32-WROOM-32 Datasheet",
+        "description": "The official technical datasheet for the ESP32-WROOM-32 module. Essential for detailed hardware specifications.",
+        "url": "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32_datasheet_en.pdf"
+      },
+      {
+        "id": "arduino-ide",
+        "type": "software",
+        "title": "Arduino IDE Download",
+        "description": "The official source for downloading the Arduino Integrated Development Environment.",
+        "url": "https://www.arduino.cc/en/software"
+      },
+      {
+        "id": "arduino-reference",
+        "type": "document",
+        "title": "Arduino Language Reference",
+        "description": "Official documentation for the Arduino programming language, including functions like pinMode(), digitalWrite(), delay(), and Serial.",
+        "url": "https://www.arduino.cc/reference/en/"
+      },
+      {
+        "id": "cp210x-driver",
+        "type": "software",
+        "title": "Silicon Labs CP210x USB to UART Bridge VCP Drivers",
+        "description": "Drivers for boards using the CP210x series chip.",
+        "url": "https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers"
+      },
+      {
+        "id": "ch340-driver",
+        "type": "software",
+        "title": "WCH CH340/CH341 Drivers",
+        "description": "Drivers for boards using the CH340 series chip. Download the driver for your specific OS.",
+        "url": "https://www.wch.cn/downloads/CH341SER_ZIP.html"
+      }
+    ]
+  },
+  "order": 0,
+  "locked": false,
+  "createdAt": "2025-08-22T18:14:15.000Z",
+  "updatedAt": "2025-08-22T18:14:15.000Z"
+}

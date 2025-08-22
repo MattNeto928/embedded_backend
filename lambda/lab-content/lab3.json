@@ -1,0 +1,126 @@
+{
+  "labId": "lab3",
+  "title": "Lab 3: Interrupts and Wireless Communication",
+  "description": "Unleash the ESP32's powerful wireless capabilities. This lab explores handling asynchronous events with hardware interrupts and then dives into three distinct communication protocols: Wi-Fi for networking, Bluetooth Low Energy (BLE) for low-power peripherals, and ESP-NOW for fast, direct device-to-device messaging.",
+  "content": "Unleash the ESP32's powerful wireless capabilities. This lab explores handling asynchronous events with hardware interrupts and then dives into three distinct communication protocols: Wi-Fi for networking, Bluetooth Low Energy (BLE) for low-power peripherals, and ESP-NOW for fast, direct device-to-device messaging.",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "This lab moves from wired to wireless communication, the signature feature of the ESP32. You will first learn a fundamental concept for efficient embedded programming: interrupts. Instead of constantly checking a pin's state (polling), an interrupt allows the hardware to notify your code the instant an event occurs. You will then apply this event-driven mindset to wireless protocols. Working in pairs with two ESP32s, you will set up a Wi-Fi client-server system, a Bluetooth Low Energy (BLE) beacon, and a direct ESP-NOW communication link."
+          },
+          {
+            "type": "note",
+            "content": "This lab requires teams of two, with each team using two ESP32 boards."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Learning Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Differentiate between polling and interrupt-driven programming.\n- Configure a GPIO pin to trigger an Interrupt Service Routine (ISR).\n- Understand best practices for writing ISRs (e.g., keeping them short, using `volatile` variables).\n- Implement a client-server model over Wi-Fi, with one ESP32 as an Access Point and the other as a Station.\n- Create a BLE server on an ESP32 and interact with it using a smartphone.\n- Implement low-latency, connectionless communication between two ESP32s using ESP-NOW."
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Hardware and Software Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "**Hardware (per team):**\n* 2x ESP32 Development Boards\n* 2x Breadboards and Jumper Wires\n* 1x Pushbutton\n* 1x LED and 330Ω resistor\n\n**Software:**\n* Arduino IDE configured for ESP32\n* A smartphone with a BLE scanner application (e.g., 'nRF Connect for Mobile' or 'LightBlue')"
+          }
+        ]
+      },
+      {
+        "id": "instructions-part1",
+        "type": "instructions",
+        "title": "Part 1: Hardware Interrupts",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "We will build a simple, non-blocking button counter using an interrupt.\n1.  Connect a pushbutton from GPIO 15 to GND. We will use the internal pull-up resistor.\n2.  Write a sketch that does the following:\n    - In `setup()`, configure GPIO 15 as `INPUT_PULLUP`.\n    - Create an Interrupt Service Routine (ISR) function, e.g., `void IRAM_ATTR onButtonPress()`. The `IRAM_ATTR` attribute ensures the code is placed in RAM for speed.\n    - Inside the ISR, increment a counter variable. This variable **must** be declared as `volatile` (e.g., `volatile int buttonPresses = 0;`) so the compiler knows it can change at any time.\n    - In `setup()`, use `attachInterrupt()` to link the GPIO pin, the ISR function, and the trigger mode (`FALLING`).\n    - The main `loop()` should simply print the value of the `buttonPresses` variable to the serial monitor every second. Notice how the count increases without the `loop()` ever actively checking the button state."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part2",
+        "type": "instructions",
+        "title": "Part 2: Wi-Fi Client-Server",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "One ESP32 will act as a web server, and the other will be a client that fetches data from it.\n\n**ESP32 #1 (Server):**\n1.  Program this ESP32 to create a Wi-Fi soft Access Point (AP) with a custom SSID and password.\n2.  Set up a simple web server on the device.\n3.  When a client makes an HTTP GET request to the root ('/'), the server should respond with a plain text message indicating a value, e.g., \"Value: 5\". This value should be a variable you can change in the code.\n\n**ESP32 #2 (Client):**\n1.  Program this ESP32 to connect to the Wi-Fi network created by the server.\n2.  In its `loop()`, it should make an HTTP GET request to the server's IP address every 5 seconds.\n3.  It must parse the server's response to extract the number. \n4.  Blink the onboard LED a number of times equal to the value received from the server."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part3",
+        "type": "instructions",
+        "title": "Part 3: Bluetooth Low Energy (BLE) Server",
+        "order": 6,
+        "content": [
+          {
+            "type": "text",
+            "content": "We'll create a BLE peripheral that can be controlled by a central device, like your phone.\n1.  Using one of your ESP32s, set up a BLE Server with a custom name.\n2.  Create a BLE Service with a unique UUID.\n3.  Within that service, create a BLE Characteristic, also with a unique UUID, that has READ and WRITE properties.\n4.  In your code, check if a client has written a new value to the characteristic. If the value is '1', turn on an external LED. If the value is '0', turn it off.\n5.  Use a BLE scanner app on your smartphone to connect to the ESP32, find the characteristic, and write '1' and '0' (as byte values) to control the LED remotely."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part4",
+        "type": "instructions",
+        "title": "Part 4: ESP-NOW Direct Communication",
+        "order": 7,
+        "content": [
+          {
+            "type": "text",
+            "content": "ESP-NOW is a connectionless protocol perfect for fast sensor data transmission.\n1.  First, run a utility sketch on both ESP32s to get their unique MAC addresses. You'll need these for direct communication.\n\n**ESP32 #1 (Sender):**\n1.  Initialize ESP-NOW and register the MAC address of the receiver.\n2.  Use the interrupt-driven button counter code from Part 1. \n3.  Modify the `loop()`: Whenever the button count changes, send a message via ESP-NOW to the receiver. The message should contain the new button count.\n\n**ESP32 #2 (Receiver):**\n1.  Initialize ESP-NOW.\n2.  Register a callback function that will be executed whenever a message is received.\n3.  Inside the callback function, print the received data (the button count) and the sender's MAC address to the Serial Monitor."
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission Requirements",
+        "order": 8,
+        "content": [
+          {
+            "type": "text",
+            "content": "1.  Submit all four of your Arduino sketches, clearly named (e.g., `part1_interrupt.ino`, `part2_wifi_server.ino`, etc.).\n2.  A single video demonstrating all parts:\n    - Show the interrupt counter printing to serial as you press the button.\n    - Show the Wi-Fi client's LED blinking in response to the server's value.\n    - Show your phone's BLE app writing a value to the ESP32 and the LED turning on/off.\n    - Show the ESP-NOW receiver's serial monitor displaying new counts immediately after you press the button on the sender."
+          }
+        ]
+      },
+      {
+        "id": "extracredit",
+        "type": "custom",
+        "title": "Extra Credit: Range Testing",
+        "order": 9,
+        "content": [
+          {
+            "type": "text",
+            "content": "Choose one of the wireless protocols (Wi-Fi, BLE, or ESP-NOW). Power both ESP32s with portable power sources (e.g., USB power banks). Take them outdoors to an open area and measure the maximum reliable communication range. Document your methodology, the environment (line-of-sight, obstacles), and the maximum distance achieved. Compare your result with the protocol's expected range."
+          }
+        ]
+      }
+    ]
+  },
+  "order": 3,
+  "locked": false,
+  "createdAt": "2025-08-22T18:28:00.000Z",
+  "updatedAt": "2025-08-22T18:28:00.000Z"
+}

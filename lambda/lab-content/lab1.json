@@ -1,0 +1,148 @@
+{
+  "labId": "lab1",
+  "title": "Lab 1: Bare-Metal I/O and Signal Processing",
+  "description": "Dive below the Arduino API abstraction layer to control the ESP32's I/O peripherals by directly manipulating hardware registers. This lab covers direct register control for digital output, PWM generation, and analog input, culminating in a sound-reactive visualizer.",
+  "content": "Dive below the Arduino API abstraction layer to control the ESP32's I/O peripherals by directly manipulating hardware registers. This lab covers direct register control for digital output, PWM generation, and analog input, culminating in a sound-reactive visualizer.",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "In Lab 0, you used the Arduino API, a set of convenient functions like `digitalWrite()` and `analogRead()`. These functions provide a simple, portable way to program microcontrollers, but they hide the underlying hardware operations. In this lab, you will learn how to bypass these APIs and perform 'bare-metal' programming by reading and writing directly to the ESP32's special function registers. This powerful technique gives you maximum control and performance. You will learn to control digital pins, generate precise PWM signals for an RGB LED, and read an analog microphone, all by manipulating memory-mapped registers."
+          },
+          {
+            "type": "warning",
+            "content": "This lab requires basic soldering to attach header pins to the microphone breakout board. Please follow all safety precautions when using a soldering iron."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Learning Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Understand the concept of memory-mapped I/O and hardware registers.\n- Control a digital output pin using GPIO registers instead of `digitalWrite()`.\n- Configure the ESP32's LEDC peripheral via registers to generate PWM signals and control an RGB LED.\n- Read data from an analog sensor by interfacing with the ADC peripheral registers.\n- Safely solder components to a breakout board.\n- Consult a technical reference manual to find register addresses and bit definitions."
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Hardware and Software Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "**Hardware:**\n* ESP32 Development Board\n* Breadboard and Jumper Wires\n* 1x Standard LED (any color)\n* 1x Common Cathode RGB LED\n* 4x 220Ω or 330Ω Resistors\n* 1x MAX4466 or MAX9814 Microphone Amplifier Breakout Board\n* Soldering Iron and Solder\n\n**Software:**\n* Arduino IDE configured for ESP32\n* Access to the ESP32 Technical Reference Manual (see Resources)"
+          }
+        ]
+      },
+      {
+        "id": "instructions-part1",
+        "type": "instructions",
+        "title": "Part 1: Soldering and Assembly",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "Your microphone breakout board does not come with header pins attached. You will need to solder them yourself.\n1.  Place the 5-pin male header into your breadboard.\n2.  Place the microphone PCB over the pins, ensuring the pins go through the holes correctly.\n3.  Heat both the pin and the pad on the PCB with the soldering iron for a few seconds.\n4.  Introduce solder to the joint until it flows smoothly and forms a small, shiny cone.\n5.  Remove the solder, then the iron. Allow the joint to cool naturally.\n6.  Repeat for all pins."
+          },
+          {
+            "type": "image",
+            "url": "https://i.imgur.com/uRzh5g6.jpeg",
+            "caption": "A properly soldered header pin on a breakout board."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part2",
+        "type": "instructions",
+        "title": "Part 2: Bare-Metal Digital Output",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "We will blink an LED connected to GPIO 23 without using `pinMode()` or `digitalWrite()`. We will use the GPIO registers directly. The key registers are `GPIO_ENABLE_REG` to set pin direction and `GPIO_OUT_W1TS_REG` / `GPIO_OUT_W1TC_REG` to set the pin high or low.\n1.  Wire a standard LED and a 330Ω resistor in series from GPIO 23 to GND.\n2.  Use the provided starter code. Your task is to write the register manipulation logic.\n3.  In `setup()`, write to the `GPIO_ENABLE_REG` to configure pin 23 as an output. This involves setting the 23rd bit. `(1 << 23)`\n4.  In `loop()`, write to `GPIO_OUT_W1TS_REG` to set pin 23 high, and `GPIO_OUT_W1TC_REG` to set pin 23 low. These 'write 1 to set/clear' registers are efficient ways to toggle bits."
+          },
+          {
+            "type": "code",
+            "language": "cpp",
+            "content": "#define GPIO_OUT_REG        (*((volatile uint32_t *)0x3FF44004))\n#define GPIO_OUT_W1TS_REG   (*((volatile uint32_t *)0x3FF44008))\n#define GPIO_OUT_W1TC_REG   (*((volatile uint32_t *)0x3FF4400C))\n#define GPIO_ENABLE_REG     (*((volatile uint32_t *)0x3FF44020))\n#define BLINK_GPIO 23\n\nvoid setup() {\n  // TODO: Configure BLINK_GPIO as an output by setting the correct\n  // bit in the GPIO_ENABLE_REG. You are setting bit 23.\n  // Example for bit N: GPIO_ENABLE_REG |= (1 << N);\n}\n\nvoid loop() {\n  // TODO: Turn the LED on by setting the bit in the W1TS register.\n  delay(500);\n  // TODO: Turn the LED off by setting the bit in the W1TC register.\n  delay(500);\n}"
+          }
+        ]
+      },
+      {
+        "id": "instructions-part3",
+        "type": "instructions",
+        "title": "Part 3: Bare-Metal PWM with the LEDC Peripheral",
+        "order": 6,
+        "content": [
+          {
+            "type": "text",
+            "content": "The ESP32's LED Controller (LEDC) peripheral is designed to generate PWM signals. We will configure its timer and channel registers to make an RGB LED fade through colors.\n1.  Connect your common-cathode RGB LED to GPIOs 18 (Red), 19 (Green), and 21 (Blue), each through a 330Ω resistor. Connect the common cathode to GND.\n2.  Study the LEDC section of the ESP32 Technical Reference Manual. You will need to configure an LEDC timer (e.g., Timer0) for frequency and resolution, and then configure three LEDC channels (e.g., Channels 0, 1, 2) to use that timer and connect them to the GPIOs.\n3.  Your task is to write a function `setRGB(r, g, b)` that takes 8-bit color values, calculates the correct duty cycle for an 8-bit PWM resolution, and writes these values to the `LEDC_CHx_DUTY_REG` for each channel. You must then set the update bit in `LEDC_CHx_CONF_REG` to apply the new duty cycle."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part4",
+        "type": "instructions",
+        "title": "Part 4: Bare-Metal Analog Input",
+        "order": 7,
+        "content": [
+          {
+            "type": "text",
+            "content": "Now, we will read the output of the microphone using the ADC peripheral registers. This is complex, so we will focus on a simplified approach using ADC1.\n1.  Connect the microphone breakout: GND to GND, VCC to 3.3V, and the OUT pin to GPIO 34 (an ADC1 pin).\n2.  The task is to read the raw ADC value from the microphone. You'll need to look up how to set the ADC attenuation, select the channel, and trigger a conversion using the registers.\n3.  In your `loop()`, continuously read the ADC value and print it to the Serial Plotter (`Tools > Serial Plotter`). Clap your hands or speak near the microphone; you should see the waveform on the plotter."
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission Requirements",
+        "order": 8,
+        "content": [
+          {
+            "type": "text",
+            "content": "1.  A single, well-commented `.ino` file containing the code for all parts (you can use functions to separate the logic).\n2.  A photo of your soldered microphone breakout board.\n3.  A short video demonstrating the bare-metal blinking LED, the RGB LED smoothly fading through colors, and the Serial Plotter showing a waveform when you make a sound.\n4.  A short text response answering: Why is using the `W1TS` and `W1TC` registers considered more 'atomic' or safer in complex applications (like those with interrupts) than the read-modify-write operation (`GPIO_OUT_REG |= (1 << N)`)?"
+          }
+        ]
+      },
+      {
+        "id": "extracredit",
+        "type": "custom",
+        "title": "Extra Credit: Assembly Delay",
+        "order": 9,
+        "content": [
+          {
+            "type": "text",
+            "content": "Replace the `delay()` calls in Part 2 with your own delay function written using inline assembly. The function should use a loop of `nop` (no operation) instructions to create a precise, blocking delay. Calculate how many `nop` cycles are needed for an approximate 1ms delay given the ESP32's clock speed, and use that to build your `my_delay_ms(int ms)` function."
+          }
+        ]
+      },
+      {
+        "id": "resources",
+        "type": "resources",
+        "title": "Resources",
+        "order": 10,
+        "content": [
+          {
+            "type": "text",
+            "content": "- [ESP32 Technical Reference Manual](https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf) (Essential for this lab)\n- [Adafruit Guide to Excellent Soldering](https://learn.adafruit.com/adafruit-guide-excellent-soldering)"
+          }
+        ]
+      }
+    ]
+  },
+  "order": 1,
+  "locked": false,
+  "createdAt": "2025-08-22T18:28:00.000Z",
+  "updatedAt": "2025-08-22T18:28:00.000Z"
+}

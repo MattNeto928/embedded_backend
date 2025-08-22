@@ -1,0 +1,121 @@
+{
+  "labId": "lab1",
+  "title": "Lab 1: Digital I/O, Analog In, PWM Out",
+  "description": "Explore Digital I/O, Analog In, PWM Out, USB breakout board, and Microphone (solder). Assembly Extra credit.",
+  "content": "# Lab 1: Digital I/O, Analog In, PWM Out\n\n## Topics:\n- Digital I/O\n- Analog In\n- PWM out\n- USB breakout board\n- Without APIs\n- Microphone (solder)\n\n## Extra Credit:\n- Assembly",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "In this lab, you will learn the fundamentals of working with the ESP32 microcontroller. You'll explore digital input/output operations, analog input, and PWM output. You'll also work with a USB breakout board and solder a microphone component."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Configure and use digital input/output pins\n- Read analog values using the ADC\n- Generate PWM signals for output control\n- Interface with a USB breakout board\n- Implement functionality without using high-level APIs\n- Solder and interface with a microphone component\n- (Extra Credit) Write assembly code for specific functionality"
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "- ESP32 development board\n- Breadboard and jumper wires\n- LEDs and resistors\n- Push buttons or switches\n- Potentiometer\n- USB breakout board\n- Microphone component\n- Soldering equipment"
+          }
+        ]
+      },
+      {
+        "id": "instructions",
+        "type": "instructions",
+        "title": "Instructions",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "### Part 1: Digital I/O\n\n1. Configure one pin as a digital output and connect an LED\n2. Configure another pin as a digital input and connect a push button\n3. Write code to toggle the LED when the button is pressed"
+          },
+          {
+            "type": "text",
+            "content": "### Part 2: Analog Input\n\n1. Connect a potentiometer to an analog input pin\n2. Read the analog value and print it to the serial monitor\n3. Map the analog value to control the brightness of an LED"
+          },
+          {
+            "type": "text",
+            "content": "### Part 3: PWM Output\n\n1. Configure a pin for PWM output\n2. Generate a PWM signal with varying duty cycle\n3. Use the PWM signal to control the brightness of an LED"
+          },
+          {
+            "type": "text",
+            "content": "### Part 4: USB Breakout Board\n\n1. Connect the USB breakout board to your ESP32\n2. Configure the necessary pins for communication\n3. Implement a simple data transfer protocol"
+          },
+          {
+            "type": "text",
+            "content": "### Part 5: Low-Level Implementation\n\n1. Implement at least one feature without using high-level APIs\n2. Document your approach and explain the low-level operations"
+          },
+          {
+            "type": "text",
+            "content": "### Part 6: Microphone Integration\n\n1. Solder the microphone component\n2. Connect the microphone to your ESP32\n3. Read audio input and process the signal\n4. Implement a simple audio-responsive application"
+          },
+          {
+            "type": "text",
+            "content": "### Extra Credit: Assembly Code\n\n1. Identify a function that could benefit from assembly optimization\n2. Write assembly code to implement this function\n3. Compare the performance with the C/C++ equivalent"
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "Submit the following:\n\n1. Your complete code with comments explaining each section\n2. A circuit diagram showing all connections\n3. A brief report (1-2 pages) explaining your implementation and any challenges you faced\n4. A video demonstration of your working project\n5. (If applicable) Your assembly code with explanations"
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource1",
+        "type": "document",
+        "title": "ESP32 GPIO Documentation",
+        "description": "Official documentation for ESP32 GPIO functions",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/gpio.html"
+      },
+      {
+        "id": "resource2",
+        "type": "document",
+        "title": "ESP32 ADC Documentation",
+        "description": "Official documentation for ESP32 ADC functions",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/adc.html"
+      },
+      {
+        "id": "resource3",
+        "type": "document",
+        "title": "ESP32 PWM Documentation",
+        "description": "Official documentation for ESP32 PWM functions",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/ledc.html"
+      }
+    ]
+  },
+  "order": 1,
+  "locked": false,
+  "createdAt": "2025-08-22T16:46:00.000Z",
+  "updatedAt": "2025-08-22T16:46:00.000Z"
+}

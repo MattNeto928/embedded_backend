@@ -1,0 +1,114 @@
+{
+  "labId": "lab4",
+  "title": "Lab 4: RTOS, Timers, and On-Device Machine Learning",
+  "description": "Explore advanced microcontroller concepts including high-precision hardware timers, concurrent programming with a Real-Time Operating System (FreeRTOS), and on-device Machine Learning (TinyML). This capstone lab integrates these topics into an untethered, battery-powered gesture recognition device.",
+  "content": "Explore advanced microcontroller concepts including high-precision hardware timers, concurrent programming with a Real-Time Operating System (FreeRTOS), and on-device Machine Learning (TinyML). This capstone lab integrates these topics into an untethered, battery-powered gesture recognition device.",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "In this final lab, you will leverage the full power of the ESP32's dual-core architecture and advanced peripherals. We will move beyond the simple `loop()` structure to build a robust multi-threaded application using the underlying FreeRTOS operating system. You will learn to use hardware timers for precise, non-blocking periodic events. The highlight of this lab is implementing a TinyML (TensorFlow Lite for Microcontrollers) application that uses an accelerometer to recognize physical gestures. Finally, you will learn to power your creation from an external battery, making it a truly portable embedded device."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Learning Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Configure a hardware timer to trigger a periodic ISR for precise timing.\n- Understand the fundamentals of a Real-Time Operating System (RTOS).\n- Create and manage multiple concurrent tasks using the FreeRTOS API.\n- Implement a simple on-device machine learning application using TensorFlow Lite for Microcontrollers.\n- Read data from an IMU (Inertial Measurement Unit) sensor over I2C.\n- Power an ESP32 project using an external power source like a LiPo battery."
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Hardware and Software Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "**Hardware:**\n* ESP32 Development Board\n* Breadboard and Jumper Wires\n* MPU-6050 Accelerometer/Gyroscope Breakout Board\n* 2x LEDs (e.g., one red, one green) and 2x 330Ω resistors\n* 3.7V LiPo Battery\n* A LiPo battery charging/management board (e.g., TP4056 based) OR an ESP32 board with on-board battery management.\n\n**Software:**\n* Arduino IDE with ESP32 core\n* Arduino Libraries: `Adafruit MPU6050`, `TensorFlow Lite` (install via Library Manager)"
+          }
+        ]
+      },
+      {
+        "id": "instructions-part1",
+        "type": "instructions",
+        "title": "Part 1: High-Precision Hardware Timers",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "Unlike `delay()` or `millis()`, hardware timers provide highly accurate, non-blocking timing using dedicated hardware. \n1.  Write a sketch that configures one of the ESP32's four hardware timers.\n2.  Set the timer to trigger an interrupt precisely twice per second (every 500,000 microseconds).\n3.  Write an ISR that is called by the timer. This ISR should do one simple thing: toggle the state of the onboard LED (`LED_BUILTIN`).\n4.  In your main `loop()`, print a continuously incrementing counter to the Serial Monitor. Observe that the LED blinks at a perfectly steady rate, completely independent of the work being done in the `loop()`."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part2",
+        "type": "instructions",
+        "title": "Part 2: Multi-threading with FreeRTOS",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "The Arduino environment for the ESP32 is built on the FreeRTOS. We can create our own tasks to run concurrently.\n1.  Write a sketch that creates two new tasks in `setup()` using `xTaskCreate()`.\n2.  **Task 1:** This task's function should contain an infinite loop that blinks an external red LED with a 250ms on/250ms off cycle. Use `vTaskDelay()` instead of `delay()`.\n3.  **Task 2:** This task's function should contain an infinite loop that blinks an external green LED with a 1000ms on/1000ms off cycle.\n4.  The main `loop()` function (which runs as its own task) should do nothing but print \"Main loop is running\" every 5 seconds.\n5.  Run the code and observe that both LEDs blink at their own independent rates, while the main loop also continues to run, demonstrating concurrent execution."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part3",
+        "type": "instructions",
+        "title": "Part 3: TinyML Gesture Recognition",
+        "order": 6,
+        "content": [
+          {
+            "type": "text",
+            "content": "We will use a pre-trained machine learning model to recognize gestures from accelerometer data.\n1.  Connect the MPU-6050 sensor to the ESP32's I2C pins (SDA: GPIO 21, SCL: GPIO 22).\n2.  Install the required libraries and load the provided example sketch. This starter code will handle the complex parts of initializing TensorFlow Lite and the model.\n3.  Your task is to integrate the MPU-6050 sensor reading. In the `loop()`, you must read the latest acceleration data (x, y, and z axes) from the sensor.\n4.  Feed this data into the input tensor of the machine learning model.\n5.  Invoke the interpreter to run the inference.\n6.  Read the output tensor to get the prediction scores for different gestures (e.g., 'wing', 'ring', 'slope' from the default magic_wand example).\n7.  If the 'wing' gesture is detected with high confidence, light the red LED. If the 'ring' gesture is detected, light the green LED. Print the detected gesture and its confidence score to the Serial Monitor."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part4",
+        "type": "instructions",
+        "title": "Part 4: External Power and Final Assembly",
+        "order": 7,
+        "content": [
+          {
+            "type": "text",
+            "content": "Let's make our gesture recognizer portable.\n1.  First, ensure your LiPo battery is fully charged using its charging module.\n2.  Carefully connect the output of the battery/charger module to the ESP32. Connect the battery's positive (+) terminal to the `VIN` pin and the negative (-) terminal to a `GND` pin. **Verify polarity before connecting!**\n3.  Disconnect the USB cable from the ESP32. The device should now be running entirely on battery power.\n4.  Demonstrate that the gesture recognition system from Part 3 works correctly while untethered."
+          },
+          {
+            "type": "warning",
+            "content": "Lithium-Polymer (LiPo) batteries can be dangerous if mishandled. Never puncture, short-circuit, or over-charge/discharge them. Always use a proper charging and protection circuit."
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission Requirements",
+        "order": 8,
+        "content": [
+          {
+            "type": "text",
+            "content": "1.  Submit your Arduino sketches for the timer, FreeRTOS, and the final TinyML gesture recognizer.\n2.  A short video demonstrating:\n    - The hardware timer LED blinking steadily while serial data prints.\n    - The two LEDs blinking at different, independent rates in the FreeRTOS demo.\n    - The final, battery-powered device. Clearly perform the two different gestures and show the corresponding LEDs lighting up correctly."
+          }
+        ]
+      }
+    ]
+  },
+  "order": 4,
+  "locked": false,
+  "createdAt": "2025-08-22T18:28:00.000Z",
+  "updatedAt": "2025-08-22T18:28:00.000Z"
+}

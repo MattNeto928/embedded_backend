@@ -1,0 +1,9 @@
+{
+  "name": "lambda-functions",
+  "version": "1.0.0",
+  "description": "Lambda functions for ECE 4180 course",
+  "dependencies": {
+    "aws-sdk": "^2.1574.0",
+    "uuid": "^11.1.0"
+  }
+}

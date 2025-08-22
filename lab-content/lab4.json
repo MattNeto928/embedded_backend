@@ -1,0 +1,130 @@
+{
+  "labId": "lab4",
+  "title": "Lab 4: Timer, ML, Thread, External Power",
+  "description": "Explore Timer, Machine Learning, Threading, and parts with external power sources.",
+  "content": "# Lab 4: Timer, ML, Thread, External Power\n\n## Topics:\n- Timer\n- ML (Machine Learning)\n- Thread\n- Part with external power source",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "In this lab, you will explore advanced features of the ESP32 including timers, machine learning capabilities, multi-threading, and interfacing with externally powered components. These features are essential for developing sophisticated embedded systems that can perform complex tasks efficiently while managing power requirements."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Configure and use hardware timers for precise timing operations\n- Implement a simple machine learning model on the ESP32\n- Create and manage multiple threads for concurrent task execution\n- Interface with components requiring external power sources\n- Develop a comprehensive application integrating all these features"
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "- ESP32 development board\n- Breadboard and jumper wires\n- LEDs and resistors\n- Sensors (e.g., accelerometer, temperature sensor)\n- External power supply (5-12V)\n- Power management components (voltage regulators, capacitors)\n- High-power components (e.g., motors, solenoids, high-brightness LEDs)\n- USB cable for programming and debugging"
+          }
+        ]
+      },
+      {
+        "id": "instructions",
+        "type": "instructions",
+        "title": "Instructions",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "### Part 1: Timer Implementation\n\n1. Configure a hardware timer on the ESP32\n2. Set up timer interrupts at specific intervals\n3. Implement a precise timing application (e.g., a digital clock, reaction time tester)\n4. Compare the accuracy of hardware timers vs. software delays\n5. Demonstrate timer-based control of multiple outputs"
+          },
+          {
+            "type": "code",
+            "language": "c",
+            "content": "// Example timer setup code\n#define LED_PIN 2\n\nhw_timer_t * timer = NULL;\nvolatile SemaphoreHandle_t timerSemaphore;\nportMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;\n\nvolatile uint32_t isrCounter = 0;\nvolatile uint32_t lastIsrAt = 0;\n\nvoid IRAM_ATTR onTimer() {\n  portENTER_CRITICAL_ISR(&timerMux);\n  isrCounter++;\n  lastIsrAt = millis();\n  portEXIT_CRITICAL_ISR(&timerMux);\n  // Give a semaphore that we can check in the loop\n  xSemaphoreGiveFromISR(timerSemaphore, NULL);\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  pinMode(LED_PIN, OUTPUT);\n  \n  // Create semaphore to inform us when the timer has fired\n  timerSemaphore = xSemaphoreCreateBinary();\n  \n  // Use 1st timer of 4 (counted from zero)\n  // Set 80 divider for prescaler (see ESP32 Technical Reference Manual for more info)\n  timer = timerBegin(0, 80, true);\n  \n  // Attach onTimer function to our timer\n  timerAttachInterrupt(timer, &onTimer, true);\n  \n  // Set alarm to call onTimer function every second (value in microseconds)\n  // Repeat the alarm (third parameter)\n  timerAlarmWrite(timer, 1000000, true);\n  \n  // Start an alarm\n  timerAlarmEnable(timer);\n}\n\nvoid loop() {\n  // If timer semaphore is available, we can toggle the LED\n  if (xSemaphoreTake(timerSemaphore, 0) == pdTRUE) {\n    uint32_t isrCount = 0, isrTime = 0;\n    \n    // Read the interrupt count and time\n    portENTER_CRITICAL(&timerMux);\n    isrCount = isrCounter;\n    isrTime = lastIsrAt;\n    portEXIT_CRITICAL(&timerMux);\n    \n    // Toggle LED\n    digitalWrite(LED_PIN, !digitalRead(LED_PIN));\n    \n    // Print info\n    Serial.print(\"onTimer no. \");\n    Serial.print(isrCount);\n    Serial.print(\" at \");\n    Serial.print(isrTime);\n    Serial.println(\" ms\");\n  }\n}"
+          },
+          {
+            "type": "text",
+            "content": "### Part 2: Machine Learning Implementation\n\n1. Choose a simple machine learning task suitable for the ESP32 (e.g., gesture recognition, anomaly detection)\n2. Collect and prepare training data from sensors\n3. Train a lightweight model (offline, on a computer)\n4. Convert and optimize the model for the ESP32\n5. Implement the model on the ESP32 and demonstrate real-time inference"
+          },
+          {
+            "type": "text",
+            "content": "### Part 3: Multi-threading\n\n1. Identify tasks that can benefit from concurrent execution\n2. Create multiple FreeRTOS tasks with appropriate priorities\n3. Implement proper synchronization mechanisms (mutexes, semaphores)\n4. Demonstrate effective task scheduling and resource sharing\n5. Monitor and optimize CPU usage across threads"
+          },
+          {
+            "type": "code",
+            "language": "c",
+            "content": "// Example multi-threading code\n#define LED1_PIN 2\n#define LED2_PIN 4\n\n// Task handles\nTaskHandle_t Task1;\nTaskHandle_t Task2;\n\n// Mutex for shared resources\nSemaphoreHandle_t mutex;\n\n// Task1 code: blink LED1 every 1000ms\nvoid task1Function(void *parameter) {\n  for (;;) {\n    digitalWrite(LED1_PIN, HIGH);\n    vTaskDelay(1000 / portTICK_PERIOD_MS);\n    digitalWrite(LED1_PIN, LOW);\n    vTaskDelay(1000 / portTICK_PERIOD_MS);\n  }\n}\n\n// Task2 code: blink LED2 every 500ms\nvoid task2Function(void *parameter) {\n  for (;;) {\n    digitalWrite(LED2_PIN, HIGH);\n    vTaskDelay(500 / portTICK_PERIOD_MS);\n    digitalWrite(LED2_PIN, LOW);\n    vTaskDelay(500 / portTICK_PERIOD_MS);\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  pinMode(LED1_PIN, OUTPUT);\n  pinMode(LED2_PIN, OUTPUT);\n  \n  // Create mutex\n  mutex = xSemaphoreCreateMutex();\n  \n  // Create tasks\n  xTaskCreatePinnedToCore(\n    task1Function,  // Function to implement the task\n    \"Task1\",       // Name of the task\n    10000,          // Stack size in words\n    NULL,           // Task input parameter\n    1,              // Priority of the task\n    &Task1,         // Task handle\n    0);             // Core where the task should run\n    \n  xTaskCreatePinnedToCore(\n    task2Function,  // Function to implement the task\n    \"Task2\",       // Name of the task\n    10000,          // Stack size in words\n    NULL,           // Task input parameter\n    2,              // Priority of the task\n    &Task2,         // Task handle\n    1);             // Core where the task should run\n}\n\nvoid loop() {\n  // Empty loop as tasks are handling the work\n}"
+          },
+          {
+            "type": "text",
+            "content": "### Part 4: External Power Management\n\n1. Design a circuit to interface the ESP32 with externally powered components\n2. Implement proper power management techniques (voltage regulation, decoupling)\n3. Create isolation between logic-level and high-power circuits\n4. Develop control mechanisms for high-power components\n5. Implement safety features to prevent damage to the ESP32"
+          },
+          {
+            "type": "text",
+            "content": "### Part 5: Integrated Application\n\n1. Design an application that integrates timers, machine learning, multi-threading, and external power\n2. Implement a state machine to manage the overall system behavior\n3. Ensure proper resource allocation and power management\n4. Add error handling and recovery mechanisms\n5. Optimize the application for performance and power efficiency"
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "Submit the following:\n\n1. Your complete code with detailed comments explaining each component\n2. Circuit diagrams for all hardware components, especially the external power interface\n3. A comprehensive report (3-4 pages) covering:\n   - Timer implementation and performance analysis\n   - Machine learning model selection, training, and implementation\n   - Threading architecture and synchronization mechanisms\n   - External power management design and safety considerations\n   - Integration challenges and solutions\n4. A video demonstration showing the complete integrated application\n5. Performance metrics (CPU usage, memory usage, power consumption, etc.)"
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource1",
+        "type": "document",
+        "title": "ESP32 Timer Documentation",
+        "description": "Official documentation for ESP32 hardware timers",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/timer.html"
+      },
+      {
+        "id": "resource2",
+        "type": "document",
+        "title": "TensorFlow Lite for Microcontrollers",
+        "description": "Guide for implementing machine learning on microcontrollers",
+        "url": "https://www.tensorflow.org/lite/microcontrollers"
+      },
+      {
+        "id": "resource3",
+        "type": "document",
+        "title": "ESP32 FreeRTOS Documentation",
+        "description": "Guide to multi-threading on ESP32 using FreeRTOS",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/freertos.html"
+      },
+      {
+        "id": "resource4",
+        "type": "document",
+        "title": "Power Management for ESP32",
+        "description": "Guide to power management techniques for ESP32",
+        "url": "https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/power_management.html"
+      }
+    ]
+  },
+  "order": 4,
+  "locked": true,
+  "createdAt": "2025-08-22T16:46:00.000Z",
+  "updatedAt": "2025-08-22T16:46:00.000Z"
+}

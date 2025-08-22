@@ -1,0 +1,110 @@
+{
+  "labId": "lab2",
+  "title": "Lab 2: Wired Communication Protocols and Actuators",
+  "description": "Explore the three primary wired communication protocols—UART, I2C, and SPI—by interfacing with a variety of peripherals. You will control an LCD display, a digital-to-analog converter, and a GPIO expander. The lab culminates in an integrated project that uses capacitive touch and motor control.",
+  "content": "Explore the three primary wired communication protocols—UART, I2C, and SPI—by interfacing with a variety of peripherals. You will control an LCD display, a digital-to-analog converter, and a GPIO expander. The lab culminates in an integrated project that uses capacitive touch and motor control.",
+  "structuredContent": {
+    "sections": [
+      {
+        "id": "intro",
+        "type": "introduction",
+        "title": "Introduction",
+        "order": 1,
+        "content": [
+          {
+            "type": "text",
+            "content": "Modern embedded systems are rarely standalone; they communicate with a host of sensors, displays, and other microcontrollers. This communication happens over established protocols. In this lab, you'll get hands-on experience with three of the most common: UART, for simple serial text; I2C, a two-wire protocol for connecting multiple devices; and SPI, a faster protocol for high-throughput peripherals. You will then apply this knowledge to control actuators like a DAC and a DC motor, creating a complex, interactive system."
+          }
+        ]
+      },
+      {
+        "id": "objectives",
+        "type": "objectives",
+        "title": "Learning Objectives",
+        "order": 2,
+        "content": [
+          {
+            "type": "text",
+            "content": "- Understand the operational differences between UART, I2C, and SPI.\n- Send commands and display data on a serial-enabled LCD using a hardware UART port.\n- Control a Digital-to-Analog Converter (DAC) over the I2C bus to generate precise analog voltages.\n- Read a digital input and write a digital output on a GPIO expander chip using the SPI protocol.\n- Read the ESP32's built-in capacitive touch sensors.\n- Control the speed and direction of a DC motor using an H-Bridge driver and PWM."
+          }
+        ]
+      },
+      {
+        "id": "requirements",
+        "type": "requirements",
+        "title": "Hardware and Software Requirements",
+        "order": 3,
+        "content": [
+          {
+            "type": "text",
+            "content": "**Hardware:**\n* ESP32, Breadboard, Jumper Wires\n* 1x Serial-enabled LCD (e.g., SparkFun SerLCD)\n* 1x MCP4725 I2C DAC Breakout\n* 1x MCP23S17 SPI GPIO Expander IC\n* 1x L293D or TB6612FNG H-Bridge Motor Driver\n* 1x Small DC Motor (3-6V)\n* 1x Pushbutton\n* 1x LED and 330Ω resistor\n* 1x Multimeter\n* External power source for motor (e.g., 4xAA battery pack or 5V power supply)"
+          }
+        ]
+      },
+      {
+        "id": "instructions-part1",
+        "type": "instructions",
+        "title": "Part 1: UART and a Micro LCD",
+        "order": 4,
+        "content": [
+          {
+            "type": "text",
+            "content": "The ESP32 has three hardware UART controllers. We will use `Serial2` to communicate with a serial LCD.\n1.  Connect the LCD: VCC to 5V (from VIN pin if ESP32 is USB powered), GND to GND, and the LCD's RX pin to the ESP32's TX pin for `Serial2` (GPIO 17).\n2.  Initialize `Serial2` in your code: `Serial2.begin(9600);`. Note that you may need to consult your LCD's datasheet for the correct baud rate.\n3.  Write code to send commands to clear the screen, change the color (if applicable), and display text like \"Lab 2 Started\". Your LCD's datasheet will list the specific command characters or sequences to send."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part2",
+        "type": "instructions",
+        "title": "Part 2: I2C and a Digital-to-Analog Converter",
+        "order": 5,
+        "content": [
+          {
+            "type": "text",
+            "content": "I2C allows communication with multiple devices using just two wires: SDA (Data) and SCL (Clock).\n1.  Connect the MCP4725 DAC: VCC to 3.3V, GND to GND, SCL to ESP32's SCL pin (GPIO 22), and SDA to ESP32's SDA pin (GPIO 21).\n2.  Use the Arduino `Wire` library. In `setup()`, call `Wire.begin()`.\n3.  Write a function `setVoltage(float v)`. This function should take a voltage from 0.0 to 3.3, map it to the DAC's 12-bit range (0-4095), and send the value to the DAC's I2C address (usually 0x62). Use a multimeter to probe the DAC's output pin and verify that your function generates the correct voltage."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part3",
+        "type": "instructions",
+        "title": "Part 3: SPI and a GPIO Expander",
+        "order": 6,
+        "content": [
+          {
+            "type": "text",
+            "content": "SPI is a faster, more complex protocol that uses separate lines for data in and out.\n1.  Connect the MCP23S17 GPIO expander. This requires careful wiring for power, ground, and the SPI pins: SCLK (GPIO 18), MISO (GPIO 19), MOSI (GPIO 23), and CS (Chip Select, use GPIO 5).\n2.  Use the Arduino `SPI` library. You will need to write functions to send and receive data from the expander by setting the CS pin low, transferring data with `SPI.transfer()`, and setting CS high again.\n3.  Your task is to configure one of the expander's pins (e.g., GPA0) as an input connected to a pushbutton, and another (e.g., GPB0) as an output connected to an LED. Write code in your `loop()` to read the state of the button via SPI and set the LED's state accordingly."
+          }
+        ]
+      },
+      {
+        "id": "instructions-part4",
+        "type": "instructions",
+        "title": "Part 4: Integration - Touch, Motors, and Displays",
+        "order": 7,
+        "content": [
+          {
+            "type": "text",
+            "content": "Now, let's combine everything into a single, interactive system.\n\n**A. Capacitive Touch to DAC Control**\n1.  The ESP32 has built-in touch-sensitive pins. Attach a jumper wire to GPIO 4 to act as a touch pad.\n2.  In your `loop()`, read the value from the touch pin using `touchRead(T0)`. \n3.  Map the raw touch value to a voltage (0.0V to 3.3V) and use your `setVoltage()` function from Part 2 to control the DAC. When you touch the wire, the DAC's output voltage should change.\n4.  Display the current raw touch value and the DAC's output voltage on the serial LCD from Part 1.\n\n**B. Motor Control**\n1.  Connect the DC motor to the H-Bridge motor driver. Power the motor driver's logic from the ESP32's 3.3V pin, but power the motor itself from your external battery pack. **Do not power the motor from the ESP32's 3.3V pin!** Connect the driver's input pins to the ESP32. You will need two digital pins for direction (e.g., GPIOs 26, 27) and one PWM-capable pin for speed (e.g., GPIO 25).\n2.  Write code that uses the button on the SPI GPIO expander to cycle the motor's speed between 0%, 50%, and 100%. Use the LEDC PWM functionality (`ledcWrite()`) for speed control.\n3.  Display the current motor speed percentage on the LCD."
+          }
+        ]
+      },
+      {
+        "id": "submission",
+        "type": "submission",
+        "title": "Submission Requirements",
+        "order": 8,
+        "content": [
+          {
+            "type": "text",
+            "content": "1.  A single, well-commented `.ino` file for the fully integrated system.\n2.  A clear wiring diagram or a photo of your final breadboard circuit.\n3.  A video demonstrating all functionalities working together: The LCD must display touch and motor status. Touching the wire must change the DAC voltage (show this on a multimeter). Pressing the SPI button must change the motor speed."
+          }
+        ]
+      }
+    ]
+  },
+  "order": 2,
+  "locked": false,
+  "createdAt": "2025-08-22T18:28:00.000Z",
+  "updatedAt": "2025-08-22T18:28:00.000Z"
+}
