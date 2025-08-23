@@ -220,10 +220,46 @@ export class Ece4180Stack extends cdk.Stack {
       restApiName: 'ECE 4180 Course API',
       description: 'API for ECE 4180 course platform',
       defaultCorsPreflightOptions: {
-        allowOrigins: ['http://localhost:3000', 'https://ece4180.vercel.app'],
+        allowOrigins: [
+          'http://localhost:3000',
+          'https://ece4180.vercel.app',
+          'https://embedded-website-2.vercel.app',
+          'https://embedded-website-2-git-main.vercel.app'
+        ],
         allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: apigateway.Cors.DEFAULT_HEADERS,
+        allowHeaders: [
+          ...apigateway.Cors.DEFAULT_HEADERS,
+          'Authorization',
+          'Content-Type',
+          'X-Amz-Date',
+          'X-Api-Key'
+        ],
+        allowCredentials: true,
       },
+    });
+    
+    // Add CORS headers to 4XX error responses
+    new apigateway.GatewayResponse(this, 'Default4XX', {
+      restApi: api,
+      type: apigateway.ResponseType.DEFAULT_4XX,
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'http://localhost:3000,https://ece4180.vercel.app,https://embedded-website-2.vercel.app,https://embedded-website-2-git-main.vercel.app'",
+        'Access-Control-Allow-Headers': "'Content-Type,Authorization,X-Amz-Date,X-Api-Key'",
+        'Access-Control-Allow-Methods': "'GET,POST,OPTIONS,PUT'",
+        'Access-Control-Allow-Credentials': "'true'"
+      }
+    });
+    
+    // Add CORS headers to 5XX error responses
+    new apigateway.GatewayResponse(this, 'Default5XX', {
+      restApi: api,
+      type: apigateway.ResponseType.DEFAULT_5XX,
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'http://localhost:3000,https://ece4180.vercel.app,https://embedded-website-2.vercel.app,https://embedded-website-2-git-main.vercel.app'",
+        'Access-Control-Allow-Headers': "'Content-Type,Authorization,X-Amz-Date,X-Api-Key'",
+        'Access-Control-Allow-Methods': "'GET,POST,OPTIONS,PUT'",
+        'Access-Control-Allow-Credentials': "'true'"
+      }
     });
 
     // Cognito Authorizer
@@ -245,6 +281,10 @@ export class Ece4180Stack extends cdk.Stack {
       authorizer,
     });
     labResource.addMethod('POST', new apigateway.LambdaIntegration(labsFunction), {
+      authorizer,
+    });
+    // Add PUT method for updating lab content
+    labResource.addMethod('PUT', new apigateway.LambdaIntegration(labsFunction), {
       authorizer,
     });
 
