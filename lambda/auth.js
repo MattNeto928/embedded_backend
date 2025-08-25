@@ -32,6 +32,12 @@ exports.handler = async (event) => {
                 return await handleConfirmSignUp(body);
             case 'refresh':
                 return await handleRefreshToken(body);
+            case 'forgot-password':
+                return await handleForgotPassword(body);
+            case 'confirm-forgot-password':
+                return await handleConfirmForgotPassword(body);
+            case 'resend-verification':
+                return await handleResendVerification(body);
             default:
                 return {
                     statusCode: 400,
@@ -235,5 +241,104 @@ async function handleRefreshToken({ refreshToken }) {
             },
             body: JSON.stringify({ error: error.message })
         };
+    }
+    
+    async function handleForgotPassword({ username }) {
+        const params = {
+            ClientId: process.env.USER_POOL_CLIENT_ID,
+            Username: username
+        };
+    
+        try {
+            await cognito.forgotPassword(params).promise();
+            return {
+                statusCode: 200,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+                },
+                body: JSON.stringify({
+                    message: 'Password reset code sent successfully. Check your email for the code.'
+                })
+            };
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            return {
+                statusCode: 400,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+                },
+                body: JSON.stringify({ error: error.message })
+            };
+        }
+    }
+    
+    async function handleConfirmForgotPassword({ username, confirmationCode, password }) {
+        const params = {
+            ClientId: process.env.USER_POOL_CLIENT_ID,
+            Username: username,
+            ConfirmationCode: confirmationCode,
+            Password: password
+        };
+    
+        try {
+            await cognito.confirmForgotPassword(params).promise();
+            return {
+                statusCode: 200,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+                },
+                body: JSON.stringify({ message: 'Password reset successfully' })
+            };
+        } catch (error) {
+            console.error('Confirm forgot password error:', error);
+            return {
+                statusCode: 400,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+                },
+                body: JSON.stringify({ error: error.message })
+            };
+        }
+    }
+    
+    async function handleResendVerification({ username }) {
+        const params = {
+            ClientId: process.env.USER_POOL_CLIENT_ID,
+            Username: username
+        };
+    
+        try {
+            await cognito.resendConfirmationCode(params).promise();
+            return {
+                statusCode: 200,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+                },
+                body: JSON.stringify({
+                    message: 'Verification code resent successfully. Check your email for the code.'
+                })
+            };
+        } catch (error) {
+            console.error('Resend verification error:', error);
+            return {
+                statusCode: 400,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+                },
+                body: JSON.stringify({ error: error.message })
+            };
+        }
     }
 }

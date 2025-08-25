@@ -12,7 +12,7 @@ export class Ece4180Stack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // S3 Bucket for video storage
+    // S3 Bucket for general video storage
     const videoBucket = new s3.Bucket(this, 'VideoBucket', {
       bucketName: 'ece4180-lab-videos',
       cors: [
@@ -33,6 +33,28 @@ export class Ece4180Stack extends cdk.Stack {
         },
       ],
     });
+    
+    // S3 Bucket for checkoff videos (per lab part)
+    const checkoffVideoBucket = new s3.Bucket(this, 'CheckoffVideoBucket', {
+      bucketName: 'ece4180-checkoff-videos',
+      cors: [
+        {
+          allowedMethods: [
+            s3.HttpMethods.GET,
+            s3.HttpMethods.POST,
+            s3.HttpMethods.PUT,
+          ],
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
+        },
+      ],
+      lifecycleRules: [
+        {
+          id: 'DeleteOldCheckoffVideos',
+          expiration: cdk.Duration.days(365), // Keep videos for 1 year
+        },
+      ],
+    });
 
     // DynamoDB Tables
     const submissionsTable = new dynamodb.Table(this, 'SubmissionsTable', {
@@ -40,6 +62,35 @@ export class Ece4180Stack extends cdk.Stack {
       partitionKey: { name: 'submissionId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+    
+    // Table for tracking video submissions per lab part
+    const partSubmissionsTable = new dynamodb.Table(this, 'PartSubmissionsTable', {
+      tableName: 'ece4180-part-submissions',
+      partitionKey: { name: 'submissionId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+    
+    // Add GSI for querying by student
+    partSubmissionsTable.addGlobalSecondaryIndex({
+      indexName: 'StudentIndex',
+      partitionKey: { name: 'studentId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'submittedAt', type: dynamodb.AttributeType.STRING },
+    });
+    
+    // Add GSI for querying by lab and part
+    partSubmissionsTable.addGlobalSecondaryIndex({
+      indexName: 'LabPartIndex',
+      partitionKey: { name: 'labId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'partId', type: dynamodb.AttributeType.STRING },
+    });
+    
+    // Add GSI for querying by status (for the queue)
+    partSubmissionsTable.addGlobalSecondaryIndex({
+      indexName: 'StatusIndex',
+      partitionKey: { name: 'status', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'submittedAt', type: dynamodb.AttributeType.STRING },
     });
 
     // Add GSI for querying by student
@@ -175,6 +226,8 @@ export class Ece4180Stack extends cdk.Stack {
               resources: [
                 submissionsTable.tableArn,
                 `${submissionsTable.tableArn}/index/*`,
+                partSubmissionsTable.tableArn,
+                `${partSubmissionsTable.tableArn}/index/*`,
                 labStatusTable.tableArn,
                 labsTable.tableArn,
                 `${labsTable.tableArn}/index/*`,
@@ -196,7 +249,10 @@ export class Ece4180Stack extends cdk.Stack {
                 's3:DeleteObject',
                 's3:GetSignedUrl',
               ],
-              resources: [`${videoBucket.bucketArn}/*`],
+              resources: [
+                `${videoBucket.bucketArn}/*`,
+                `${checkoffVideoBucket.bucketArn}/*`
+              ],
             }),
           ],
         }),
@@ -236,7 +292,9 @@ export class Ece4180Stack extends cdk.Stack {
         LAB_STATUS_TABLE: labStatusTable.tableName,
         LABS_TABLE: labsTable.tableName,
         SUBMISSIONS_TABLE: submissionsTable.tableName,
+        PART_SUBMISSIONS_TABLE: partSubmissionsTable.tableName,
         VIDEO_BUCKET: videoBucket.bucketName,
+        CHECKOFF_VIDEO_BUCKET: checkoffVideoBucket.bucketName,
         STUDENTS_TABLE: studentsTable.tableName,
         LAB_PROGRESS_TABLE: labProgressTable.tableName,
         LAB_GRADES_TABLE: labGradesTable.tableName,
@@ -250,7 +308,24 @@ export class Ece4180Stack extends cdk.Stack {
       role: lambdaRole,
       environment: {
         SUBMISSIONS_TABLE: submissionsTable.tableName,
+        PART_SUBMISSIONS_TABLE: partSubmissionsTable.tableName,
         VIDEO_BUCKET: videoBucket.bucketName,
+        CHECKOFF_VIDEO_BUCKET: checkoffVideoBucket.bucketName,
+        STUDENTS_TABLE: studentsTable.tableName,
+        LAB_PROGRESS_TABLE: labProgressTable.tableName,
+        LAB_GRADES_TABLE: labGradesTable.tableName,
+      },
+    });
+    
+    // Part Submissions Lambda function
+    const partSubmissionsFunction = new lambda.Function(this, 'PartSubmissionsFunction', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'part-submissions.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      role: lambdaRole,
+      environment: {
+        PART_SUBMISSIONS_TABLE: partSubmissionsTable.tableName,
+        CHECKOFF_VIDEO_BUCKET: checkoffVideoBucket.bucketName,
         STUDENTS_TABLE: studentsTable.tableName,
         LAB_PROGRESS_TABLE: labProgressTable.tableName,
         LAB_GRADES_TABLE: labGradesTable.tableName,
@@ -270,6 +345,9 @@ export class Ece4180Stack extends cdk.Stack {
         LAB_GRADES_TABLE: labGradesTable.tableName,
         LABS_TABLE: labsTable.tableName,
         SUBMISSIONS_TABLE: submissionsTable.tableName,
+        PART_SUBMISSIONS_TABLE: partSubmissionsTable.tableName,
+        VIDEO_BUCKET: videoBucket.bucketName,
+        CHECKOFF_VIDEO_BUCKET: checkoffVideoBucket.bucketName,
         USER_POOL_ID: userPool.userPoolId,
       },
     });
@@ -394,6 +472,40 @@ export class Ece4180Stack extends cdk.Stack {
     submissionResource.addMethod('PUT', new apigateway.LambdaIntegration(submissionsFunction), {
       authorizer,
     });
+    
+    // Part submissions API endpoints
+    const partSubmissionsResource = api.root.addResource('part-submissions');
+    partSubmissionsResource.addMethod('GET', new apigateway.LambdaIntegration(partSubmissionsFunction), {
+      authorizer,
+    });
+    
+    // Endpoint for creating a new part submission
+    partSubmissionsResource.addMethod('POST', new apigateway.LambdaIntegration(partSubmissionsFunction), {
+      authorizer,
+    });
+    
+    // Endpoint for getting a specific part submission
+    const partSubmissionResource = partSubmissionsResource.addResource('{submissionId}');
+    partSubmissionResource.addMethod('GET', new apigateway.LambdaIntegration(partSubmissionsFunction), {
+      authorizer,
+    });
+    
+    // Endpoint for updating a part submission (approve/reject)
+    partSubmissionResource.addMethod('PUT', new apigateway.LambdaIntegration(partSubmissionsFunction), {
+      authorizer,
+    });
+    
+    // Endpoint for getting the next submission in the queue
+    const queueResource = partSubmissionsResource.addResource('queue');
+    queueResource.addMethod('GET', new apigateway.LambdaIntegration(partSubmissionsFunction), {
+      authorizer,
+    });
+    
+    // Endpoint for getting a presigned URL for uploading a video
+    const presignedUrlResource = partSubmissionsResource.addResource('presigned-url');
+    presignedUrlResource.addMethod('POST', new apigateway.LambdaIntegration(partSubmissionsFunction), {
+      authorizer,
+    });
 
     // Outputs
     new cdk.CfnOutput(this, 'UserPoolId', {
@@ -414,6 +526,11 @@ export class Ece4180Stack extends cdk.Stack {
     new cdk.CfnOutput(this, 'VideoBucketName', {
       value: videoBucket.bucketName,
       description: 'S3 Video Bucket Name',
+    });
+    
+    new cdk.CfnOutput(this, 'CheckoffVideoBucketName', {
+      value: checkoffVideoBucket.bucketName,
+      description: 'S3 Checkoff Video Bucket Name',
     });
     
     // Add the lab content importer to automatically load lab content from JSON files
