@@ -72,6 +72,38 @@ export class Ece4180Stack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
     
+    // Students table for storing student information
+    const studentsTable = new dynamodb.Table(this, 'StudentsTable', {
+      tableName: 'ece4180-students',
+      partitionKey: { name: 'name', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+    
+    // Add GSI for querying by section
+    studentsTable.addGlobalSecondaryIndex({
+      indexName: 'SectionIndex',
+      partitionKey: { name: 'section', type: dynamodb.AttributeType.STRING },
+    });
+    
+    // Lab Progress table for tracking detailed progress on lab parts
+    const labProgressTable = new dynamodb.Table(this, 'LabProgressTable', {
+      tableName: 'ece4180-lab-progress',
+      partitionKey: { name: 'studentId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'progressId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+    
+    // Lab Grades table for storing grades for each lab
+    const labGradesTable = new dynamodb.Table(this, 'LabGradesTable', {
+      tableName: 'ece4180-lab-grades',
+      partitionKey: { name: 'studentId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'labId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+    
     // Add GSI for querying labs by order
     labsTable.addGlobalSecondaryIndex({
       indexName: 'OrderIndex',
@@ -146,6 +178,10 @@ export class Ece4180Stack extends cdk.Stack {
                 labStatusTable.tableArn,
                 labsTable.tableArn,
                 `${labsTable.tableArn}/index/*`,
+                studentsTable.tableArn,
+                `${studentsTable.tableArn}/index/*`,
+                labProgressTable.tableArn,
+                labGradesTable.tableArn,
               ],
             }),
           ],
@@ -201,6 +237,9 @@ export class Ece4180Stack extends cdk.Stack {
         LABS_TABLE: labsTable.tableName,
         SUBMISSIONS_TABLE: submissionsTable.tableName,
         VIDEO_BUCKET: videoBucket.bucketName,
+        STUDENTS_TABLE: studentsTable.tableName,
+        LAB_PROGRESS_TABLE: labProgressTable.tableName,
+        LAB_GRADES_TABLE: labGradesTable.tableName,
       },
     });
 
@@ -212,20 +251,35 @@ export class Ece4180Stack extends cdk.Stack {
       environment: {
         SUBMISSIONS_TABLE: submissionsTable.tableName,
         VIDEO_BUCKET: videoBucket.bucketName,
+        STUDENTS_TABLE: studentsTable.tableName,
+        LAB_PROGRESS_TABLE: labProgressTable.tableName,
+        LAB_GRADES_TABLE: labGradesTable.tableName,
       },
     });
 
+    // Students Lambda function
+    const studentsFunction = new lambda.Function(this, 'StudentsFunction', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'students.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      role: lambdaRole,
+      environment: {
+        STUDENTS_TABLE: studentsTable.tableName,
+        LAB_STATUS_TABLE: labStatusTable.tableName,
+        LAB_PROGRESS_TABLE: labProgressTable.tableName,
+        LAB_GRADES_TABLE: labGradesTable.tableName,
+        LABS_TABLE: labsTable.tableName,
+        SUBMISSIONS_TABLE: submissionsTable.tableName,
+        USER_POOL_ID: userPool.userPoolId,
+      },
+    });
+    
     // API Gateway
     const api = new apigateway.RestApi(this, 'Ece4180Api', {
       restApiName: 'ECE 4180 Course API',
       description: 'API for ECE 4180 course platform',
       defaultCorsPreflightOptions: {
-        allowOrigins: [
-          'http://localhost:3000',
-          'https://ece4180.vercel.app',
-          'https://embedded-website-2.vercel.app',
-          'https://embedded-website-2-git-main.vercel.app'
-        ],
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
         allowHeaders: [
           ...apigateway.Cors.DEFAULT_HEADERS,
@@ -243,7 +297,7 @@ export class Ece4180Stack extends cdk.Stack {
       restApi: api,
       type: apigateway.ResponseType.DEFAULT_4XX,
       responseHeaders: {
-        'Access-Control-Allow-Origin': "'http://localhost:3000,https://ece4180.vercel.app,https://embedded-website-2.vercel.app,https://embedded-website-2-git-main.vercel.app'",
+        'Access-Control-Allow-Origin': "'*'",
         'Access-Control-Allow-Headers': "'Content-Type,Authorization,X-Amz-Date,X-Api-Key'",
         'Access-Control-Allow-Methods': "'GET,POST,OPTIONS,PUT'",
         'Access-Control-Allow-Credentials': "'true'"
@@ -255,7 +309,7 @@ export class Ece4180Stack extends cdk.Stack {
       restApi: api,
       type: apigateway.ResponseType.DEFAULT_5XX,
       responseHeaders: {
-        'Access-Control-Allow-Origin': "'http://localhost:3000,https://ece4180.vercel.app,https://embedded-website-2.vercel.app,https://embedded-website-2-git-main.vercel.app'",
+        'Access-Control-Allow-Origin': "'*'",
         'Access-Control-Allow-Headers': "'Content-Type,Authorization,X-Amz-Date,X-Api-Key'",
         'Access-Control-Allow-Methods': "'GET,POST,OPTIONS,PUT'",
         'Access-Control-Allow-Credentials': "'true'"
@@ -303,6 +357,34 @@ export class Ece4180Stack extends cdk.Stack {
       authorizer,
     });
 
+    // Students API endpoints
+    const studentsResource = api.root.addResource('students');
+    studentsResource.addMethod('GET', new apigateway.LambdaIntegration(studentsFunction), {
+      authorizer,
+    });
+    
+    const studentResource = studentsResource.addResource('{studentName}');
+    studentResource.addMethod('GET', new apigateway.LambdaIntegration(studentsFunction), {
+      authorizer,
+    });
+    studentResource.addMethod('PUT', new apigateway.LambdaIntegration(studentsFunction), {
+      authorizer,
+    });
+    
+    // Progress API endpoints
+    const progressResource = api.root.addResource('progress');
+    progressResource.addMethod('GET', new apigateway.LambdaIntegration(studentsFunction), {
+      authorizer,
+    });
+    
+    const studentProgressResource = progressResource.addResource('{studentName}');
+    studentProgressResource.addMethod('GET', new apigateway.LambdaIntegration(studentsFunction), {
+      authorizer,
+    });
+    studentProgressResource.addMethod('PUT', new apigateway.LambdaIntegration(studentsFunction), {
+      authorizer,
+    });
+    
     const submissionsResource = api.root.addResource('submissions');
     submissionsResource.addMethod('GET', new apigateway.LambdaIntegration(submissionsFunction), {
       authorizer,
