@@ -1,15 +1,34 @@
 {
-  "labId": "lab0",
-  "title": "Lab 0: Introduction to the ESP32-C6-DevKit1",
-  "description": "This introductory lab guides you through picking up your ESP32-C6-DevKit1 board, setting up the Arduino IDE with necessary libraries and board managers, and running your first program to verify your hardware is working correctly.",
   "content": "This introductory lab guides you through picking up your ESP32-C6-DevKit1 board, setting up the Arduino IDE with necessary libraries and board managers, and running your first program to verify your hardware is working correctly.",
   "structuredContent": {
+    "resources": [
+      {
+        "description": "The official source for downloading the Arduino Integrated Development Environment.",
+        "id": "arduino-ide",
+        "type": "software",
+        "title": "Arduino IDE Download",
+        "url": "https://www.arduino.cc/en/software"
+      },
+      {
+        "description": "The official technical datasheet for the ESP32-C6-DevKit1 module.",
+        "id": "esp32-c6-datasheet",
+        "type": "document",
+        "title": "ESP32-C6-DevKit1 Datasheet",
+        "url": "https://www.espressif.com/sites/default/files/documentation/esp32-c6_datasheet_en.pdf"
+      },
+      {
+        "description": "Guide for using the Adafruit NeoPixel library with various microcontrollers.",
+        "id": "neopixel-guide",
+        "type": "document",
+        "title": "Adafruit NeoPixel Guide",
+        "url": "https://learn.adafruit.com/adafruit-neopixel-uberguide"
+      }
+    ],
     "sections": [
       {
         "id": "intro",
         "type": "introduction",
         "title": "Introduction",
-        "order": 1,
         "content": [
           {
             "type": "text",
@@ -17,52 +36,52 @@
           },
           {
             "type": "image",
-            "url": "https://i.imgur.com/39g969M.jpeg",
-            "caption": "An ESP32-C6-DevKit1 Development Board"
+            "caption": "An ESP32-C6-DevKit1 Development Board",
+            "url": "https://docs.sunfounder.com/projects/umsk/en/latest/_images/esp32_wroom_32e.png"
           }
-        ]
+        ],
+        "order": 1
       },
       {
         "id": "overview",
         "type": "overview",
         "title": "Lab Overview",
-        "order": 2,
         "content": [
           {
             "type": "text",
             "content": "This lab is split up into 2 parts:\n\n1. You must go to Van Leer C256/252 when a TA or Diego is present to check out your ESP32-C6 board. You will be given a label to stick on the bottom of the board to identify and the TA will note down which board you got. Then, following the instructions provided, you will load a simple program to run on the board.\n\n2. The second part of the lab is answering the questions on the Canvas Quiz."
           }
-        ]
+        ],
+        "order": 2
       },
       {
         "id": "objectives",
         "type": "objectives",
         "title": "Learning Objectives",
-        "order": 3,
         "content": [
           {
             "type": "text",
             "content": "By the end of this lab, you will be able to:\n- Obtain your ESP32-C6-DevKit1 board that you'll use throughout the semester.\n- Install and configure the Arduino IDE for ESP32-C6 development.\n- Install the necessary board manager for the ESP32-C6.\n- Install the Adafruit NeoPixel library.\n- Compile and upload a program to make the onboard LED flash red.\n- Understand the basic process of programming your ESP32-C6 board."
           }
-        ]
+        ],
+        "order": 3
       },
       {
         "id": "requirements",
         "type": "requirements",
         "title": "Hardware and Software Requirements",
-        "order": 4,
         "content": [
           {
             "type": "text",
             "content": "**Hardware:**\n* ESP32-C6-DevKit1 Board (to be checked out from Van Leer C256/252)\n* A USB-C cable capable of data transfer (not just charging)\n\n**Software:**\n* Arduino IDE (pre-installed on lab computers or install on your own device)\n* ESP32 board manager by Espressif\n* Adafruit NeoPixel library"
           }
-        ]
+        ],
+        "order": 4
       },
       {
         "id": "part1",
         "type": "instructions",
         "title": "Part 1: Board Checkout and Arduino IDE Setup",
-        "order": 5,
         "content": [
           {
             "type": "text",
@@ -74,8 +93,8 @@
           },
           {
             "type": "image",
-            "url": "https://i.imgur.com/uI6y9i8.png",
-            "caption": "Screenshot 2025-08-22 134429.png - Installing the ESP32 board manager"
+            "caption": "Screenshot 2025-08-22 134429.png - Installing the ESP32 board manager",
+            "url": "https://public-ece4180.s3.us-east-1.amazonaws.com/board_manager.png"
           },
           {
             "type": "text",
@@ -83,8 +102,8 @@
           },
           {
             "type": "image",
-            "url": "https://i.imgur.com/example2.png",
-            "caption": "Screenshot 2025-08-22 140239.png - Installing the Adafruit NeoPixel library"
+            "caption": "Screenshot 2025-08-22 140239.png - Installing the Adafruit NeoPixel library",
+            "url": "https://public-ece4180.s3.us-east-1.amazonaws.com/neopixel.png"
           },
           {
             "type": "text",
@@ -94,13 +113,13 @@
             "type": "warning",
             "content": "Make sure you plug the USB-C cable into the \"USB\" port on the ESP32-C6-DevKit1, not the \"UART\" port. If correctly plugged in, you may see the onboard LED cycle between many different colors."
           }
-        ]
+        ],
+        "order": 5
       },
       {
         "id": "part2",
         "type": "instructions",
         "title": "Part 2: Programming the ESP32-C6",
-        "order": 6,
         "content": [
           {
             "type": "text",
@@ -115,13 +134,13 @@
             "type": "text",
             "content": "**Step 2: Upload the Program**\n\n1. Press the upload button in the top left of the Arduino IDE (the arrow button between the checkmark and triangle icon buttons).\n2. If everything is set up correctly, the onboard LED will flash red.\n3. Once the LED is flashing red, show it to a UTA to get checked off for this part of the lab."
           }
-        ]
+        ],
+        "order": 6
       },
       {
         "id": "part3",
         "type": "instructions",
         "title": "Part 3: Canvas Quiz",
-        "order": 7,
         "content": [
           {
             "type": "text",
@@ -131,47 +150,29 @@
             "type": "note",
             "content": "If you are working with a partner, make sure you are both present in the lab room to complete the first part and go through the Canvas Quiz together. However, you both need to submit your own quiz individually, as Canvas doesn't allow group quiz submissions."
           }
-        ]
+        ],
+        "order": 7
       },
       {
         "id": "submission",
         "type": "submission",
         "title": "Submission Requirements",
-        "order": 8,
         "content": [
           {
             "type": "text",
             "content": "1. Complete the hardware portion of the lab by getting your ESP32-C6-DevKit1 board and demonstrating the flashing red LED to a UTA.\n2. Complete the Canvas Quiz with all required questions answered."
           }
-        ]
-      }
-    ],
-    "resources": [
-      {
-        "id": "arduino-ide",
-        "type": "software",
-        "title": "Arduino IDE Download",
-        "description": "The official source for downloading the Arduino Integrated Development Environment.",
-        "url": "https://www.arduino.cc/en/software"
-      },
-      {
-        "id": "esp32-c6-datasheet",
-        "type": "document",
-        "title": "ESP32-C6-DevKit1 Datasheet",
-        "description": "The official technical datasheet for the ESP32-C6-DevKit1 module.",
-        "url": "https://www.espressif.com/sites/default/files/documentation/esp32-c6_datasheet_en.pdf"
-      },
-      {
-        "id": "neopixel-guide",
-        "type": "document",
-        "title": "Adafruit NeoPixel Guide",
-        "description": "Guide for using the Adafruit NeoPixel library with various microcontrollers.",
-        "url": "https://learn.adafruit.com/adafruit-neopixel-uberguide"
+        ],
+        "order": 8
       }
     ]
   },
-  "order": 0,
+  "labId": "lab0",
+  "updatedAt": "2025-08-26T04:40:36.179Z",
   "locked": false,
   "createdAt": "2025-08-22T18:14:15.000Z",
-  "updatedAt": "2025-08-22T22:40:00.000Z"
+  "order": 0,
+  "description": "This introductory lab guides you through picking up your ESP32-C6-DevKit1 board, setting up the Arduino IDE with necessary libraries and board managers, and running your first program to verify your hardware is working correctly.",
+  "title": "Lab 0: Introduction to the ESP32-C6-DevKit1",
+  "status": "unlocked"
 }
