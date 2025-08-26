@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const dynamodb = new AWS.DynamoDB.DocumentClient();
+const cognitoIdp = new AWS.CognitoIdentityServiceProvider();
 const fs = require('fs');
 const path = require('path');
 
@@ -7,6 +8,8 @@ const path = require('path');
 const LABS_TABLE = process.env.LABS_TABLE;
 const LAB_STATUS_TABLE = process.env.LAB_STATUS_TABLE;
 const SUBMISSIONS_TABLE = process.env.SUBMISSIONS_TABLE;
+const STUDENTS_TABLE = process.env.STUDENTS_TABLE;
+const USER_POOL_ID = process.env.USER_POOL_ID;
 
 exports.handler = async (event) => {
     // Get the origin from the request headers or use a default
@@ -72,7 +75,22 @@ exports.handler = async (event) => {
         const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
         const userId = payload.sub;
         const userRole = payload['custom:role'] || 'student';
-        const studentId = payload['custom:studentId'];
+        let studentId = payload['custom:studentId'];
+        const cognitoUsername = payload['cognito:username'];
+        const email = payload['email'];
+
+        // Auto-provision studentId for students missing the attribute
+        if (userRole === 'student' && !studentId) {
+            try {
+                const generatedId = (email && email.includes('@')) ? email.split('@')[0] : (cognitoUsername || userId).slice(0, 12);
+                await ensureStudentProvisioned(generatedId, cognitoUsername, email);
+                studentId = generatedId;
+                console.log('Provisioned missing studentId:', studentId);
+            } catch (provisionError) {
+                console.error('Failed to auto-provision studentId:', provisionError);
+                // Continue without studentId; endpoints handle missing status gracefully
+            }
+        }
 
         // Route the request based on the HTTP method and path
         const { httpMethod, path } = event;
@@ -152,6 +170,50 @@ exports.handler = async (event) => {
         };
     }
 };
+// Ensure a student has a studentId in Cognito and exists in Students table
+async function ensureStudentProvisioned(newStudentId, cognitoUsername, email) {
+    // 1) Update Cognito custom:studentId if possible
+    if (USER_POOL_ID && cognitoUsername) {
+        try {
+            await cognitoIdp.adminUpdateUserAttributes({
+                UserPoolId: USER_POOL_ID,
+                Username: cognitoUsername,
+                UserAttributes: [
+                    { Name: 'custom:studentId', Value: newStudentId }
+                ]
+            }).promise();
+        } catch (err) {
+            console.error('Cognito update failed:', err);
+        }
+    }
+
+    // 2) Upsert into Students table
+    if (STUDENTS_TABLE) {
+        try {
+            const existing = await dynamodb.get({
+                TableName: STUDENTS_TABLE,
+                Key: { name: newStudentId }
+            }).promise();
+
+            if (!existing.Item) {
+                const now = new Date().toISOString();
+                await dynamodb.put({
+                    TableName: STUDENTS_TABLE,
+                    Item: {
+                        name: newStudentId,
+                        section: 'unassigned',
+                        hasAccount: true,
+                        email: email || null,
+                        createdAt: now,
+                        updatedAt: now
+                    }
+                }).promise();
+            }
+        } catch (err) {
+            console.error('Students table upsert failed:', err);
+        }
+    }
+}
 
 // Get all labs with status for the current user
 async function getAllLabs(userId, userRole, studentId, headers) {
@@ -171,21 +233,12 @@ async function getAllLabs(userId, userRole, studentId, headers) {
         if (userRole === 'student' && studentId) {
             // Get lab status for this student
             const statusPromises = labs.map(async (lab) => {
-                const statusParams = {
-                    TableName: LAB_STATUS_TABLE,
-                    Key: {
-                        studentId,
-                        labId: lab.labId
-                    }
-                };
-                
                 try {
-                    const statusResult = await dynamodb.get(statusParams).promise();
-                    const status = statusResult.Item;
+                    const status = await getLabStatusRecord(studentId, lab.labId);
                     
                     // Merge lab data with status
                     // Use the locked field from the lab record, with a default if not present
-                    const isLocked = lab.locked !== undefined ? lab.locked : (lab.labId !== 'lab1');
+                    const isLocked = lab.locked !== undefined ? lab.locked : (lab.labId !== 'lab0');
                     return {
                         ...lab,
                         locked: isLocked,
@@ -194,10 +247,11 @@ async function getAllLabs(userId, userRole, studentId, headers) {
                     };
                 } catch (error) {
                     console.error(`Error getting status for lab ${lab.labId}:`, error);
+                    const fallbackLocked = lab.locked !== undefined ? lab.locked : (lab.labId !== 'lab0');
                     return {
                         ...lab,
-                        locked: lab.labId !== 'lab1', // Lab 1 is unlocked by default
-                        status: lab.labId === 'lab1' ? 'unlocked' : 'locked',
+                        locked: fallbackLocked,
+                        status: fallbackLocked ? 'locked' : 'unlocked',
                         completed: false
                     };
                 }
@@ -217,7 +271,7 @@ async function getAllLabs(userId, userRole, studentId, headers) {
             statusCode: 200,
             headers,
             body: JSON.stringify(labs.map(lab => {
-                const isLocked = lab.locked !== undefined ? lab.locked : (lab.labId !== 'lab1');
+                const isLocked = lab.locked !== undefined ? lab.locked : (lab.labId !== 'lab0');
                 return {
                     ...lab,
                     locked: isLocked, // Use the actual locked status
@@ -260,19 +314,16 @@ async function getLabById(labId, userId, userRole, studentId, headers, httpMetho
         // If user is a student, check if they have access to this lab
         if (userRole === 'student' && studentId) {
             // Get lab status for this student
-            const statusParams = {
-                TableName: LAB_STATUS_TABLE,
-                Key: {
-                    studentId,
-                    labId
-                }
-            };
-            
-            const statusResult = await dynamodb.get(statusParams).promise();
-            const status = statusResult.Item;
+            let status = null;
+            try {
+                status = await getLabStatusRecord(studentId, labId);
+            } catch (statusError) {
+                // If the schema doesn't match or item not found, don't block access for unlocked labs
+                console.error('Error fetching lab status (non-blocking):', statusError);
+            }
             
             // Check if lab is locked using the locked field from the lab record
-            const isLocked = lab.locked !== undefined ? lab.locked : (labId !== 'lab1');
+            const isLocked = lab.locked !== undefined ? lab.locked : (labId !== 'lab0');
             
             if (isLocked) {
                 console.log(`Student ${studentId} attempted to access locked lab ${labId} with ${httpMethod} request`);
@@ -310,7 +361,7 @@ async function getLabById(labId, userId, userRole, studentId, headers, httpMetho
         }
         
         // For staff, return the lab with its actual locked status
-        const isLocked = lab.locked !== undefined ? lab.locked : (labId !== 'lab1');
+        const isLocked = lab.locked !== undefined ? lab.locked : (labId !== 'lab0');
         
         // For HEAD requests, just return status code without body
         if (httpMethod === 'HEAD') {
@@ -659,7 +710,7 @@ async function submitLab(labId, userId, studentId, body, headers) {
         }
         
         // Check if the lab is locked
-        const isLocked = labResult.Item.locked !== undefined ? labResult.Item.locked : (labId !== 'lab1');
+        const isLocked = labResult.Item.locked !== undefined ? labResult.Item.locked : (labId !== 'lab0');
         if (isLocked) {
             return {
                 statusCode: 403,
@@ -694,6 +745,8 @@ async function submitLab(labId, userId, studentId, body, headers) {
         const statusParams = {
             TableName: LAB_STATUS_TABLE,
             Item: {
+                // Include both attributes; whichever is the table PK will satisfy the key schema
+                name: studentId,
                 studentId,
                 labId,
                 status: 'unlocked',
@@ -719,4 +772,25 @@ async function submitLab(labId, userId, studentId, body, headers) {
             body: JSON.stringify({ error: 'Failed to submit lab' })
         };
     }
+}
+
+// Helper: attempt to get status record using either 'studentId' or legacy 'name' as PK
+async function getLabStatusRecord(studentId, labId) {
+    // Try with studentId as PK
+    try {
+        const byStudentId = await dynamodb.get({
+            TableName: LAB_STATUS_TABLE,
+            Key: { studentId, labId }
+        }).promise();
+        if (byStudentId && byStudentId.Item) return byStudentId.Item;
+    } catch (e) {
+        // ignore and try alternative
+    }
+
+    // Try with name as PK (legacy schema)
+    const byName = await dynamodb.get({
+        TableName: LAB_STATUS_TABLE,
+        Key: { name: studentId, labId }
+    }).promise();
+    return byName.Item || null;
 }

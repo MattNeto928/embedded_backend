@@ -1,0 +1,10 @@
+{
+  "labId": "test-lab",
+  "title": "Test Lab",
+  "description": "This is an updated test lab",
+  "content": "Updated test content",
+  "order": 999,
+  "locked": true,
+  "createdAt": "2025-08-26T04:49:45.779Z",
+  "updatedAt": "2025-08-26T04:49:45.784Z"
+}

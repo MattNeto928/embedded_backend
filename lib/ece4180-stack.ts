@@ -298,6 +298,7 @@ export class Ece4180Stack extends cdk.Stack {
         STUDENTS_TABLE: studentsTable.tableName,
         LAB_PROGRESS_TABLE: labProgressTable.tableName,
         LAB_GRADES_TABLE: labGradesTable.tableName,
+        USER_POOL_ID: userPool.userPoolId,
       },
     });
 
