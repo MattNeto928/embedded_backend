@@ -161,6 +161,10 @@
           {
             "type": "text",
             "content": "1. Complete the hardware portion of the lab by getting your ESP32-C6-DevKit1 board and demonstrating the flashing red LED to a UTA.\n2. Complete the Canvas Quiz with all required questions answered."
+          },
+          {
+            "type": "note",
+            "content": "**Important Note:** For Lab 0, you will receive your checkoff in the lab session. The instructor or TA will verify that you have successfully completed the lab requirements in person.\n\nIn future labs, you will be able to submit videos for your checkoffs through this platform."
           }
         ],
         "order": 8
@@ -168,11 +172,11 @@
     ]
   },
   "labId": "lab0",
-  "updatedAt": "2025-08-26T04:40:36.179Z",
+  "updatedAt": "2025-08-26T18:51:39.201Z",
   "locked": false,
+  "status": "unlocked",
   "createdAt": "2025-08-22T18:14:15.000Z",
   "order": 0,
   "description": "This introductory lab guides you through picking up your ESP32-C6-DevKit1 board, setting up the Arduino IDE with necessary libraries and board managers, and running your first program to verify your hardware is working correctly.",
-  "title": "Lab 0: Introduction to the ESP32-C6-DevKit1",
-  "status": "unlocked"
+  "title": "Lab 0: Introduction to the ESP32-C6-DevKit1"
 }
